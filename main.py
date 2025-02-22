@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, render_template
 from flask_sqlalchemy import SQLAlchemy
 from config import Config
 
@@ -19,8 +19,9 @@ class Producto(db.Model):
 # Ruta de prueba
 @app.route("/")
 def home():
-    return "¡La base de datos está conectada!"
-
+    productos = Producto.query.limit(2).all()  # Obtener 2 productos de la base de datos
+    return render_template("index.html", productos=productos)
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8000)
+
