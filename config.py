@@ -3,6 +3,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+
 class Config:
     uri = os.getenv("DATABASE_URL")
     if uri and uri.startswith("postgres://"):
