@@ -4,7 +4,7 @@ from flask_sqlalchemy import SQLAlchemy
 from config import Config
 
 # Asegurar que Flask detecte la carpeta "templates"
-app = Flask(__name__, template_folder="templates")
+app = Flask(__name__, template_folder="app/templates")
 app.config.from_object(Config)
 
 db = SQLAlchemy(app)
