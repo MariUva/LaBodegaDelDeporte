@@ -20,6 +20,3 @@ class Producto(db.Model):
 @app.route("/")
 def home():
     return "¡La base de datos está conectada!"
-
-if __name__ == "__main__":
-    app.run(debug=True)
