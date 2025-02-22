@@ -20,7 +20,7 @@ class Producto(db.Model):
 @app.route("/")
 def home():
     productos = Producto.query.limit(2).all()  # Obtener 2 productos de la base de datos
-    return render_template("index.html", productos=productos)
+    return render_template("templates\index.html", productos=productos)
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8000)
