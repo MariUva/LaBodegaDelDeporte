@@ -11,6 +11,13 @@ def home():
 
 @bp.route("/productos")
 def obtener_productos():
+    """
+    Obtiene todos los productos de la base de datos y los devuelve en formato JSON.
+
+    Returns:
+        Response: Una respuesta JSON que contiene una lista de diccionarios, 
+                  cada uno representando un producto con sus atributos 'id', 'nombre' y 'precio'.
+    """
     productos = Producto.query.all()
     return jsonify([{"id": p.id, "nombre": p.nombre, "precio": p.precio} for p in productos])
 

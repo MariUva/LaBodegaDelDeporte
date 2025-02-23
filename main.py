@@ -37,6 +37,10 @@ def categorias_mujer():
 def categorias_hombre():
     return "<h1>Página de categorías y marcas para Hombre</h1>"
 
+@app.route("/categorias/deportes")
+def categorias_deportes():
+    productos = Producto.query.order_by(db.func.random()).limit(3).all()  # Seleccionar 3 productos aleatorios
+    return render_template("categorias_deportes.html", productos=productos)
 
 if __name__ == "__main__":
     debug_mode = os.getenv("FLASK_DEBUG", "False").lower() == "true"
