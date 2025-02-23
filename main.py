@@ -29,6 +29,15 @@ def home():
     return render_template("index.html", productos=productos)
 
 
+@app.route("/categorias/mujer")
+def categorias_mujer():
+    return "<h1>Página de categorías y marcas para Mujer</h1>"
+
+@app.route("/categorias/hombre")
+def categorias_hombre():
+    return "<h1>Página de categorías y marcas para Hombre</h1>"
+
+
 if __name__ == "__main__":
     debug_mode = os.getenv("FLASK_DEBUG", "False").lower() == "true"
     app.run(host="0.0.0.0", port=8000, debug=debug_mode)

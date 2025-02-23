@@ -11,14 +11,22 @@
         <h1>Bienvenido a la bodega del deporte</h1>
         <div class="categorias">
             <div class="categoria">
+                <img src="{{ url_for('static', filename='img/mujer.jpeg') }}" alt="Mujer">
                 <h2>Mujer</h2>
-                <a href="#" class="boton">Comprar ahora</a>
+                <a href="/categorias/mujer" class="boton">Comprar ahora</a>
             </div>
             <div class="categoria">
+                <img src="{{ url_for('static', filename='img/hombre.jpeg') }}" alt="Hombre">
                 <h2>Hombre</h2>
-                <a href="#" class="boton">Comprar ahora</a>
+                <a href="/categorias/hombre" class="boton">Comprar ahora</a>
+            </div>
+            <div class="categoria">
+                <img src="{{ url_for('static', filename='img/deportes.png') }}" alt="Deportes">
+                <h2>Deportes</h2>
+                <a href="/categorias/deportes" class="boton">Comprar ahora</a>
             </div>
         </div>
+        
     </div>
 </body>
 </html>
