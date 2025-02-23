@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Explora Deportes - La Bodega del Deporte</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <!-- Encabezado -->
+    <header>
+        <h1>La Bodega del Deporte</h1>
+        <div class="icons">
+            <img src="{{ url_for('static', filename='img/cart.png') }}" alt="Carrito" width="30">
+            <img src="{{ url_for('static', filename='img/login.png') }}" alt="Login" width="30">
+        </div>
+    </header>
+
+    <!-- Sección de categorías y marcas -->
+    <section class="categorias-marcas">
+        <h2>Explora nuestras categorías y marcas</h2>
+        <button>Categorías</button>
+        <button>Marcas</button>
+    </section>
+
+    <!-- Sección de ofertas -->
+    <section class="ofertas">
+        <h2>Explora nuestras ofertas exclusivas</h2>
+        <div class="productos">
+            {% for producto in productos %}
+            <div class="producto">
+                <img src="{{ url_for('static', filename='img/producto.png') }}" alt="{{ producto.nombre }}">
+                <p>{{ producto.nombre }}</p>
+                <p>${{ producto.precio }}</p>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+</body>
+</html>
