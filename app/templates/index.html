@@ -3,14 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Productos</title>
+    <title>La Bodega del Deporte</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-    <h1>Lista de Productos</h1>
-    <ul>
-        {% for producto in productos %}
-            <li>{{ producto.nombre }} - ${{ producto.precio }}</li>
-        {% endfor %}
-    </ul>
+    <div class="container">
+        <h1>Bienvenido a la bodega del deporte</h1>
+        <div class="categorias">
+            <div class="categoria">
+                <h2>Mujer</h2>
+                <a href="#" class="boton">Comprar ahora</a>
+            </div>
+            <div class="categoria">
+                <h2>Hombre</h2>
+                <a href="#" class="boton">Comprar ahora</a>
+            </div>
+        </div>
+    </div>
 </body>
 </html>

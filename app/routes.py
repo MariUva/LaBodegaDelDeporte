@@ -13,3 +13,4 @@ def home():
 def obtener_productos():
     productos = Producto.query.all()
     return jsonify([{"id": p.id, "nombre": p.nombre, "precio": p.precio} for p in productos])
+
