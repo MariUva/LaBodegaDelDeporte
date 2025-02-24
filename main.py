@@ -31,11 +31,11 @@ def home():
 
 @app.route("/categorias/mujer")
 def categorias_mujer():
-    return "<h1>Página de categorías y marcas para Mujer</h1>"
+    return render_template("categoria_mujer.html")
 
 @app.route("/categorias/hombre")
 def categorias_hombre():
-    return "<h1>Página de categorías y marcas para Hombre</h1>"
+    return render_template("categoria_hombre.html")
 
 @app.route("/categorias/deportes")
 def categorias_deportes():
