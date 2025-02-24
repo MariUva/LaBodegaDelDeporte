@@ -9,5 +9,5 @@ class Config:
     if uri and uri.startswith("postgres://"):
         uri = uri.replace("postgres://", "postgresql://", 1)  # Reemplazar solo la primera ocurrencia
 
-    SQLALCHEMY_DATABASE_URI = 'postgresql://postgres:1234@localhost/labodega'
+    SQLALCHEMY_DATABASE_URI = uri  # Aquí se usa la variable de entorno
     SQLALCHEMY_TRACK_MODIFICATIONS = False
