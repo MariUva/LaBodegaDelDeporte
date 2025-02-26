@@ -1,5 +1,5 @@
 import os
-from flask import Flask, render_template
+from flask import Flask, render_template, request, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 from config import Config
 
@@ -42,9 +42,19 @@ def categorias_deportes():
     productos = Producto.query.order_by(db.func.random()).limit(3).all()  # Seleccionar 3 productos aleatorios
     return render_template("categorias_deportes.html", productos=productos)
 
-@app.route('/login')
+@app.route('/login', methods=['GET', 'POST'])  # Acepta GET y POST
 def login():
-    return render_template('login.html')
+    if request.method == 'POST':
+        email = request.form.get('email')
+        password = request.form.get('password')
+        
+        if email == "admin@example.com" and password == "123456":  # Prueba con credenciales fijas
+            return redirect(url_for('home'))  # Redirigir al usuario si los datos son correctos
+        else:
+            error = "Correo o contraseña incorrectos"
+            return render_template('login.html', error=error)  # Volver a mostrar el login con un mensaje de error
+
+    return render_template('login.html')  # Si es GET, solo muestra el formulario
 
 if __name__ == "__main__":
     debug_mode = os.getenv("FLASK_DEBUG", "False").lower() == "true"
