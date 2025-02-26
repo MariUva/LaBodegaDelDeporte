@@ -9,6 +9,11 @@ def home():
     productos = Producto.query.all()  # Consulta los productos en la DB
     return render_template("index.html", productos=productos)  # Envía los productos a la plantilla
 
+@app.route('/login')
+def login():
+    return render_template('login.html')
+
+
 @bp.route("/productos")
 def obtener_productos():
     """
