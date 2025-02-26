@@ -56,6 +56,10 @@ def login():
 
     return render_template('login.html')  # Si es GET, solo muestra el formulario
 
+@app.route('/register')
+def register():
+    return render_template('register.html')
+
 if __name__ == "__main__":
     debug_mode = os.getenv("FLASK_DEBUG", "False").lower() == "true"
     app.run(host="0.0.0.0", port=8000, debug=debug_mode)
