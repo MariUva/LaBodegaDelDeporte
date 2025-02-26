@@ -3,6 +3,8 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+# Imprimir la variable de entorno para verificar que se está cargando
+print("DATABASE_URL:", os.getenv("DATABASE_URL"))
 
 class Config:
     uri = os.getenv("DATABASE_URL")
