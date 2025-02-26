@@ -42,6 +42,10 @@ def categorias_deportes():
     productos = Producto.query.order_by(db.func.random()).limit(3).all()  # Seleccionar 3 productos aleatorios
     return render_template("categorias_deportes.html", productos=productos)
 
+@app.route('/login')
+def login():
+    return render_template('login.html')
+
 if __name__ == "__main__":
     debug_mode = os.getenv("FLASK_DEBUG", "False").lower() == "true"
     app.run(host="0.0.0.0", port=8000, debug=debug_mode)
