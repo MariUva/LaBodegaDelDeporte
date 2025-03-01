@@ -1,12 +1,18 @@
 from app import db
 from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy import Enum
+import enum
+from enum import Enum as PyEnum
+from sqlalchemy import CheckConstraint
+from datetime import datetime
+from sqlalchemy.orm import validates
+from sqlalchemy import Enum as SQLAlchemyEnum
+from sqlalchemy.orm import relationship
 
 # ========================== MODELO DE USUARIOS ==========================
 
 class Usuario(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    correo = db.Column(db.String(120), unique=True, nullable=False)
+    id = db.Column(db.Integer, primary_key=True)  # "_id" en MongoDB
     nombre = db.Column(db.String(50), nullable=False)
     apellidos = db.Column(db.String(50), nullable=False)
     contraseña = db.Column(db.String(200), nullable=False)  # Contraseña hasheada
@@ -19,11 +25,9 @@ class Usuario(db.Model):
         return check_password_hash(self.contraseña, contraseña)
     
     def __repr__(self):
-        return f"<Usuario {self.nombre} {self.apellidos}>"
-
+        return f"<Usuario {self.nombre} {self.apellido} - {self.rol}>"
 
 # ========================== MODELO DE MARCAS ==========================
-
 class Marca(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     nombre = db.Column(db.String(100), unique=True, nullable=False)
