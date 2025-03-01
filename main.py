@@ -1,13 +1,21 @@
 import os
+import random
 from flask import Flask, render_template, request, redirect, url_for, session, flash
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 from config import Config
-
+from flask_mail import Mail, Message
 # Configuración de la aplicación
 app = Flask(__name__, template_folder="app/templates", static_folder="app/static")
 app.config.from_object(Config)
 app.secret_key = "tu_clave_secreta"
+from sendgrid import SendGridAPIClient
+from sendgrid.helpers.mail import Mail
+
+# Configuración de SendGrid
+sg = SendGridAPIClient(os.getenv("SENDGRID_API_KEY"))
+
+mail = Mail(app)
 
 # Inicializar la base de datos
 db = SQLAlchemy(app)
@@ -16,9 +24,10 @@ db = SQLAlchemy(app)
 
 class Usuario(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(50), unique=True, nullable=False)
-    email = db.Column(db.String(100), unique=True, nullable=False)
-    password = db.Column(db.String(255), nullable=False)
+    #username = db.Column(db.String(50), unique=True, nullable=False)
+    nombre = db.Column(db.String(50), nullable=False)
+    correo = db.Column(db.String(100), unique=True, nullable=False)
+    contraseña = db.Column(db.String(255), nullable=False)
 
 class Producto(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -56,19 +65,35 @@ def categorias_deportes():
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        email = request.form.get('email')
-        password = request.form.get('password')
+        correo = request.form.get('correo')
+        contraseña = request.form.get('contraseña')
 
-        user = Usuario.query.filter_by(email=email).first()
+        user = Usuario.query.filter_by(correo=correo).first()
+        #print("usuario encontrado: ", user.correo)
         
-        if user and check_password_hash(user.password, password):
-            session['user_id'] = user.id
-            session['username'] = user.username
-            flash('Inicio de sesión exitoso', 'success')
-            return redirect(url_for('home'))
-        
-        flash('Correo o contraseña incorrectos', 'danger')
+        if user and check_password_hash(user.contraseña, contraseña):
+            session['id'] = user.id
+            session['correo'] = user.correo
+            print("Contraseña válida")
+            # Generar un código de verificación
+            codigo_verificacion = str(random.randint(100000, 999999))
+            session['codigo_verificacion'] = codigo_verificacion
 
+           # Enviar el código por correo usando SendGrid
+            message = Mail(
+                from_email=app.config['MAIL_DEFAULT_SENDER'],  # Remitente
+                to_emails=user.correo,  # Destinatario
+                subject='Código de Verificación',  # Asunto del correo
+                plain_text_content=f'Tu código de verificación es: {codigo_verificacion}'  # Contenido del correo
+            )
+            try:
+                print("intentando enviar correo")
+                response = sg.send(message)  # Enviar el correo
+                print("Correo enviado:", response.status_code)
+                flash('Inicio de sesión exitoso. Revisa tu correo para el código de verificación.', 'success')
+                return redirect(url_for('verify.html'))  # Redirigir a la página de verificación
+            except Exception as e:
+                flash('Correo o contraseña incorrectos', 'danger')
     return render_template('login.html')
 
 
@@ -82,17 +107,17 @@ def logout():
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
-        username = request.form.get('username')
-        email = request.form.get('email')
+        nombre = request.form.get('nombre')
+        correo = request.form.get('correo')
         password = request.form.get('password')
         
-        if Usuario.query.filter_by(email=email).first():
+        if Usuario.query.filter_by(correo=correo).first():
             flash('El correo ya está registrado', 'warning')
             return redirect(url_for('register'))
         
         hashed_password = generate_password_hash(password)
 
-        new_user = Usuario(username=username, email=email, password=hashed_password)
+        new_user = Usuario(nombre=nombre, correo=correo, password=hashed_password)
         db.session.add(new_user)
         db.session.commit()
 
@@ -102,7 +127,23 @@ def register():
     return render_template('register.html')
 
 
+@app.route('/verify', methods=['GET', 'POST'])
+def verify():
+    if request.method == 'POST':
+        codigo_ingresado = request.form.get('code')
+        codigo_verificacion = session.get('codigo_verificacion')
 
+        if codigo_ingresado == codigo_verificacion:
+            # Código válido, permitir acceso
+            session['id'] = Usuario.query.filter_by(correo=session.get('correo_usuario')).first().id
+            session.pop('codigo_verificacion', None)
+            session.pop('correo_usuario', None)
+            flash('Verificación exitosa', 'success')
+            return redirect(url_for('home'))
+        else:
+            flash('Código de verificación incorrecto', 'danger')
+
+    return render_template('verify.html')
 
 
 

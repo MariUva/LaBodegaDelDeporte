@@ -9,14 +9,14 @@ class Usuario(db.Model):
     correo = db.Column(db.String(120), unique=True, nullable=False)
     nombre = db.Column(db.String(50), nullable=False)
     apellidos = db.Column(db.String(50), nullable=False)
-    password = db.Column(db.String(200), nullable=False)  # Contraseña hasheada
+    contraseña = db.Column(db.String(200), nullable=False)  # Contraseña hasheada
     es_admin = db.Column(db.Boolean, default=False)
     
-    def set_password(self, password):
-        self.password = generate_password_hash(password)
+    def set_password(self, contraseña):
+        self.contraseña = generate_password_hash(contraseña)
     
-    def check_password(self, password):
-        return check_password_hash(self.password, password)
+    def check_password(self, contraseña):
+        return check_password_hash(self.contraseña, contraseña)
     
     def __repr__(self):
         return f"<Usuario {self.nombre} {self.apellidos}>"
