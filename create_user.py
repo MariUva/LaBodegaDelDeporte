@@ -8,9 +8,9 @@ app = create_app()
 with app.app_context():
     # Crear el usuario
     usuario = Usuario(
-        correo="maraurrea1@gmail.com",
-        nombre="Lulu",
-        apellidos="Medrano"
+        correo="chatcito77@gmail.com",
+        nombre="John",
+        apellidos="Cena"
     )
     usuario.set_password("1234")  # Hashear la contraseña
 
