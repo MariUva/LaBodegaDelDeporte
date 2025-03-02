@@ -49,7 +49,18 @@ def home():
 
 @app.route("/categorias")
 def categorias():
-    return render_template("categorias.html")
+    if 'id' not in session:
+        flash("Debes iniciar sesión para acceder a esta página", "warning")
+        return redirect(url_for('login'))
+
+    # Obtener el usuario actual desde la base de datos
+    usuario = Usuario.query.get(session['id'])
+    if not usuario:
+        flash("Usuario no encontrado", "danger")
+        return redirect(url_for('login'))
+
+    # Pasar el nombre del usuario a la plantilla
+    return render_template("categorias.html", nombre=usuario.nombre)
 
 
 
