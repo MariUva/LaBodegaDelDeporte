@@ -85,12 +85,29 @@
             color: red;
             margin-top: 10px;
         }
+        .flash-messages { 
+            color: red; 
+            margin-top: 10px; 
+        }
     </style>
 </head>
 <body>
 
     <div class="login-container">
         <h2>Iniciar Sesión</h2>
+
+         <!-- Mostrar mensajes flash -->
+         {% with messages = get_flashed_messages(with_categories=True) %}
+         {% if messages %}
+             <div class="flash-messages">
+                 {% for category, message in messages %}
+                     <p class="{{ category }}">{{ message }}</p>
+                 {% endfor %}
+             </div>
+         {% endif %}
+         {% endwith %}
+
+
         <form method="POST">
             <label for="correo">Correo electrónico:</label>
             <input type="email" name="correo" required>
@@ -109,10 +126,6 @@
             <input type="text" name="code" required>
             <button type="submit">Validar</button>
         </form>
-        {% endif %}
-
-        {% if error %}
-        <p class="error-message">{{ error }}</p>
         {% endif %}
 
         <p class="register-link">¿No tienes cuenta? <a href="{{ url_for('register') }}">Regístrate aquí</a></p>
