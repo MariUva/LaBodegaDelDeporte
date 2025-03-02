@@ -91,7 +91,7 @@ def login():
                 response = sg.send(message)  # Enviar el correo
                 print("Correo enviado:", response.status_code)
                 flash('Inicio de sesión exitoso. Revisa tu correo para el código de verificación.', 'success')
-                return redirect(url_for('verify.html'))  # Redirigir a la página de verificación
+                return redirect(url_for('verify'))  # Redirigir a la página de verificación
             except Exception as e:
                 flash('Correo o contraseña incorrectos', 'danger')
     return render_template('login.html')
@@ -109,15 +109,15 @@ def register():
     if request.method == 'POST':
         nombre = request.form.get('nombre')
         correo = request.form.get('correo')
-        password = request.form.get('password')
+        contraseña = request.form.get('contraseña')
         
         if Usuario.query.filter_by(correo=correo).first():
             flash('El correo ya está registrado', 'warning')
             return redirect(url_for('register'))
         
-        hashed_password = generate_password_hash(password)
+        hashed_contraseña = generate_password_hash(contraseña)
 
-        new_user = Usuario(nombre=nombre, correo=correo, password=hashed_password)
+        new_user = Usuario(nombre=nombre, correo=correo, contraseña=hashed_contraseña)
         db.session.add(new_user)
         db.session.commit()
 
@@ -135,7 +135,7 @@ def verify():
 
         if codigo_ingresado == codigo_verificacion:
             # Código válido, permitir acceso
-            session['id'] = Usuario.query.filter_by(correo=session.get('correo_usuario')).first().id
+            session['id'] = Usuario.query.filter_by(correo=session.get('correo')).first().id
             session.pop('codigo_verificacion', None)
             session.pop('correo_usuario', None)
             flash('Verificación exitosa', 'success')
