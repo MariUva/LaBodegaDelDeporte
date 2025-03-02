@@ -30,7 +30,7 @@ class Config:
 
     # Configuración de SendGrid
     SENDGRID_API_KEY = os.getenv("SENDGRID_API_KEY")
-    MAIL_DEFAULT_SENDER = os.getenv("MAIL_DEFAULT_SENDER")
+    MAIL_DEFAULT_SENDER = os.getenv("MAIL_DEFAULT_SENDER", "juanm.londonom@uqvirtual.edu.co")
     
     # Otras configuraciones opcionales
     DEBUG = os.getenv("FLASK_DEBUG", "false").lower() == "true"
