@@ -47,14 +47,10 @@ def home():
     return render_template("index.html", productos=productos)
 
 
-@app.route("/categorias/mujer")
-def categorias_mujer():
-    return render_template("categoria_mujer.html")
+@app.route("/categorias")
+def categorias():
+    return render_template("categorias.html")
 
-
-@app.route("/categorias/hombre")
-def categorias_hombre():
-    return render_template("categoria_hombre.html")
 
 
 @app.route("/categorias/deportes")
@@ -159,7 +155,7 @@ def verify():
             session.pop('codigo_verificacion', None)
             session.pop('correo_usuario', None)
             flash('Verificación exitosa', 'success')
-            return redirect(url_for('home'))
+            return redirect(url_for('categorias'))
         else:
             flash('Código de verificación incorrecto', 'danger')
 
