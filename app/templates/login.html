@@ -91,7 +91,7 @@
 
     <div class="login-container">
         <h2>Iniciar Sesión</h2>
-        <form action="{{ url_for('login') }}" method="POST">
+        <form method="POST">
             <label for="correo">Correo electrónico:</label>
             <input type="email" name="correo" required>
 
@@ -103,7 +103,7 @@
 
         {% if show_verification %}
         <h3>Ingrese el código de verificación</h3>
-        <form action="{{ url_for('verify_code') }}" method="POST">
+        <form method="POST">
             <input type="hidden" name="correo" value="{{ correo }}">
             <label for="code">Código de verificación:</label>
             <input type="text" name="code" required>

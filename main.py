@@ -64,37 +64,54 @@ def categorias_deportes():
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
+    show_verification = False
+    correo = None
+
     if request.method == 'POST':
-        correo = request.form.get('correo')
-        contraseña = request.form.get('contraseña')
+        if 'correo' in request.form and 'contraseña' in request.form:  # Login normal
+            correo = request.form.get('correo')
+            contraseña = request.form.get('contraseña')
 
-        user = Usuario.query.filter_by(correo=correo).first()
-        #print("usuario encontrado: ", user.correo)
-        
-        if user and check_password_hash(user.contraseña, contraseña):
-            session['id'] = user.id
-            session['correo'] = user.correo
-            print("Contraseña válida")
-            # Generar un código de verificación
-            codigo_verificacion = str(random.randint(100000, 999999))
-            session['codigo_verificacion'] = codigo_verificacion
+            user = Usuario.query.filter_by(correo=correo).first()
+            
+            if user and check_password_hash(user.contraseña, contraseña):
+                session['id'] = user.id
+                session['correo'] = user.correo
+                
+                # Generar código de verificación
+                codigo_verificacion = str(random.randint(100000, 999999))
+                session['codigo_verificacion'] = codigo_verificacion
 
-           # Enviar el código por correo usando SendGrid
-            message = Mail(
-                from_email=app.config['MAIL_DEFAULT_SENDER'],  # Remitente
-                to_emails=user.correo,  # Destinatario
-                subject='Código de Verificación',  # Asunto del correo
-                plain_text_content=f'Tu código de verificación es: {codigo_verificacion}'  # Contenido del correo
-            )
-            try:
-                print("intentando enviar correo")
-                response = sg.send(message)  # Enviar el correo
-                print("Correo enviado:", response.status_code)
-                flash('Inicio de sesión exitoso. Revisa tu correo para el código de verificación.', 'success')
-                return redirect(url_for('verify'))  # Redirigir a la página de verificación
-            except Exception as e:
+                # Enviar el código por correo usando SendGrid
+                message = Mail(
+                    from_email=app.config['MAIL_DEFAULT_SENDER'],
+                    to_emails=user.correo,
+                    subject='Código de Verificación',
+                    plain_text_content=f'Tu código de verificación es: {codigo_verificacion}'
+                )
+                try:
+                    sg.send(message)  
+                    flash('Código de verificación enviado. Revisa tu correo.', 'success')
+                    show_verification = True  # Activar el campo de verificación
+                except Exception as e:
+                    flash('Error al enviar el código de verificación', 'danger')
+            else:
                 flash('Correo o contraseña incorrectos', 'danger')
-    return render_template('login.html')
+
+        elif 'code' in request.form:  # Verificación del código
+            codigo_ingresado = request.form.get('code')
+            codigo_verificacion = session.get('codigo_verificacion')
+
+            if codigo_ingresado == codigo_verificacion:
+                flash('Verificación exitosa', 'success')
+                session.pop('codigo_verificacion', None)
+                return redirect(url_for('home'))
+            else:
+                flash('Código incorrecto', 'danger')
+                show_verification = True  # Seguir mostrando el campo
+
+    return render_template('login.html', show_verification=show_verification, correo=correo)
+
 
 
 @app.route('/logout')
