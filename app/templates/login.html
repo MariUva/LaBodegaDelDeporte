@@ -120,12 +120,13 @@
 
         {% if show_verification %}
         <h3>Ingrese el código de verificación</h3>
-        <form method="POST">
+        <form method="POST" action="{{ url_for('verify') }}">
             <input type="hidden" name="correo" value="{{ correo }}">
             <label for="code">Código de verificación:</label>
             <input type="text" name="code" required>
             <button type="submit">Validar</button>
         </form>
+        
         {% endif %}
 
         <p class="register-link">¿No tienes cuenta? <a href="{{ url_for('register') }}">Regístrate aquí</a></p>
