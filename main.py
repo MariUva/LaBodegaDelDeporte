@@ -127,7 +127,7 @@ def logout():
 def register():
     if request.method == 'POST':
         nombre = request.form.get('nombre')
-        apellidos = request.form.get('apellidos')  
+        apellidos = request.form.get('apellidos')
         correo = request.form.get('correo')
         contraseña = request.form.get('contraseña')
         
@@ -137,7 +137,7 @@ def register():
         
         hashed_contraseña = generate_password_hash(contraseña)
 
-        new_user = Usuario(nombre=nombre, correo=correo, contraseña=hashed_contraseña)
+        new_user = Usuario(nombre=nombre,apellidos=apellidos, correo=correo, contraseña=hashed_contraseña)
         db.session.add(new_user)
         db.session.commit()
 
