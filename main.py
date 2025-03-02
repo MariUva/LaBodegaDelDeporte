@@ -26,6 +26,7 @@ class Usuario(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     #username = db.Column(db.String(50), unique=True, nullable=False)
     nombre = db.Column(db.String(50), nullable=False)
+    apellidos = db.Column(db.String(50), nullable=False)
     correo = db.Column(db.String(100), unique=True, nullable=False)
     contraseña = db.Column(db.String(255), nullable=False)
 
@@ -126,6 +127,7 @@ def logout():
 def register():
     if request.method == 'POST':
         nombre = request.form.get('nombre')
+        apellidos = request.form.get('apellidos')  
         correo = request.form.get('correo')
         contraseña = request.form.get('contraseña')
         
