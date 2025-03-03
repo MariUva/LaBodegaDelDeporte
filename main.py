@@ -53,8 +53,12 @@ def categorias():
         flash("Debes iniciar sesión para acceder a esta página", "warning")
         return redirect(url_for('login'))
 
+    db_session = db.session  # Si estás usando `db` de SQLAlchemy
+
     # Obtener el usuario actual desde la base de datos
-    usuario = Usuario.query.get(session['id'])
+    usuario = db_session.get(Usuario, session['id'])
+
+
     if not usuario:
         flash("Usuario no encontrado", "danger")
         return redirect(url_for('login'))
