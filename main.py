@@ -180,7 +180,15 @@ def perfil():
     if 'id' not in session:
         flash("Debes iniciar sesión para acceder a esta página", "warning")
         return redirect(url_for('login'))
-    return render_template('perfil.html')
+
+    # Obtener el usuario actual desde la base de datos
+    usuario = Usuario.query.get(session['id'])
+    if not usuario:
+        flash("Usuario no encontrado", "danger")
+        return redirect(url_for('login'))
+
+    # Pasar el usuario a la plantilla
+    return render_template('perfil.html', usuario=usuario)
 
 @app.route('/logout')
 def logout():
