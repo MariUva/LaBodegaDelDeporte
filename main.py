@@ -29,6 +29,7 @@ class Usuario(db.Model):
     apellidos = db.Column(db.String(50), nullable=False)
     correo = db.Column(db.String(100), unique=True, nullable=False)
     contraseña = db.Column(db.String(255), nullable=False)
+    es_admin = db.Column(db.Boolean, default=False)  
 
 class Producto(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -74,7 +75,6 @@ def categorias_deportes():
     return render_template("categorias_deportes.html", productos=productos)
 
 
-# Ruta de login con verificación integrada
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     show_verification = False
@@ -92,7 +92,7 @@ def login():
                 session.pop('codigo_verificacion', None)
                 session['id'] = session.get('usuario_id')
                 flash('Inicio de sesión exitoso', 'success')
-                return redirect(url_for('home'))
+                return redirect(url_for('categorias'))  # Redirigir a categorias.html
             else:
                 flash('Código de verificación incorrecto', 'danger')
                 show_verification = True  # Volver a mostrar el campo de verificación
@@ -104,35 +104,34 @@ def login():
                 session['usuario_id'] = user.id
                 session['correo'] = user.correo
 
-                # Generar código de verificación
-                codigo_verificacion = str(random.randint(100000, 999999))
-                session['codigo_verificacion'] = codigo_verificacion
+                # Verificar si el usuario es administrador
+                if user.es_admin:
+                    # Generar código de verificación
+                    codigo_verificacion = str(random.randint(100000, 999999))
+                    session['codigo_verificacion'] = codigo_verificacion
 
-                # Enviar el código por correo con SendGrid
-                message = Mail(
-                    from_email=app.config['MAIL_DEFAULT_SENDER'],
-                    to_emails=user.correo,
-                    subject='Código de Verificación',
-                    plain_text_content=f'Tu código de verificación es: {codigo_verificacion}'
-                )
-                try:
-                    sg.send(message)
-                    flash('Código enviado al correo', 'info')
-                    show_verification = True
-                except Exception as e:
-                    flash('Error al enviar el correo de verificación', 'danger')
+                    # Enviar el código por correo con SendGrid
+                    message = Mail(
+                        from_email=app.config['MAIL_DEFAULT_SENDER'],
+                        to_emails=user.correo,
+                        subject='Código de Verificación',
+                        plain_text_content=f'Tu código de verificación es: {codigo_verificacion}'
+                    )
+                    try:
+                        sg.send(message)
+                        flash('Código enviado al correo', 'info')
+                        show_verification = True
+                    except Exception as e:
+                        flash('Error al enviar el correo de verificación', 'danger')
+                else:
+                    # Si no es administrador, iniciar sesión directamente
+                    session['id'] = user.id
+                    flash('Inicio de sesión exitoso', 'success')
+                    return redirect(url_for('categorias'))  # Redirigir a categorias.html
             else:
                 flash('Correo o contraseña incorrectos', 'danger')
 
     return render_template('login.html', show_verification=show_verification, correo=correo)
-
-
-@app.route('/logout')
-def logout():
-    session.clear()
-    flash("Has cerrado sesión", "info")
-    return redirect(url_for('login'))
-
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -176,7 +175,18 @@ def verify():
 
     return render_template('verify.html')
 
+@app.route('/perfil')
+def perfil():
+    if 'id' not in session:
+        flash("Debes iniciar sesión para acceder a esta página", "warning")
+        return redirect(url_for('login'))
+    return render_template('perfil.html')
 
+@app.route('/logout')
+def logout():
+    session.clear()
+    flash("Has cerrado sesión", "info")
+    return redirect(url_for('home'))
 
 
 # ========================== EJECUCIÓN ==========================
