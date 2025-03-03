@@ -196,6 +196,29 @@ def logout():
     flash("Has cerrado sesión", "info")
     return redirect(url_for('home'))
 
+from flask import request, jsonify
+
+@app.route('/cambiar_contraseña', methods=['POST'])
+def cambiar_contraseña():
+    if 'id' not in session:
+        return jsonify({"error": "Debes iniciar sesión para acceder a esta página"}), 401
+
+    data = request.get_json()
+    nueva_contraseña = data.get('nueva_contraseña')
+
+    if not nueva_contraseña:
+        return jsonify({"error": "La nueva contraseña es requerida"}), 400
+
+    # Obtener el usuario actual
+    usuario = Usuario.query.get(session['id'])
+    if not usuario:
+        return jsonify({"error": "Usuario no encontrado"}), 404
+
+    # Actualizar la contraseña
+    usuario.contraseña = generate_password_hash(nueva_contraseña)
+    db.session.commit()
+
+    return jsonify({"message": "Contraseña actualizada correctamente"}), 200
 
 # ========================== EJECUCIÓN ==========================
 if __name__ == "__main__":
