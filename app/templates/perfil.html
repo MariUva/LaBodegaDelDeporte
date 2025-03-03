@@ -96,6 +96,34 @@
             background: #28a745;
             margin-top: 10px;
         }
+
+        .change-password-form {
+            display: none; /* Oculto por defecto */
+            margin-top: 20px;
+        }
+
+        .change-password-form input {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        .change-password-form button {
+            width: 100%;
+            padding: 10px;
+            background: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .change-password-form button:hover {
+            opacity: 0.8;
+        }
     </style>
 </head>
 <body>
@@ -122,13 +150,65 @@
                 </p>
             </div>
 
+            <!-- Botón para mostrar el formulario de cambio de contraseña -->
+            <button class="btn change-password" onclick="toggleChangePasswordForm()">Cambiar Contraseña</button>
+
+            <!-- Formulario para cambiar la contraseña -->
+            <div class="change-password-form" id="changePasswordForm">
+                <input type="password" id="nuevaContraseña" placeholder="Nueva contraseña" required>
+                <input type="password" id="confirmarContraseña" placeholder="Confirmar contraseña" required>
+                <button onclick="changePassword()">Guardar Cambios</button>
+            </div>
+
             <!-- Acciones del perfil -->
             <div class="profile-actions">
                 <a href="/editar_perfil" class="btn">Editar Perfil</a>
-                <a href="/cambiar_contraseña" class="btn change-password">Cambiar Contraseña</a>
                 <a href="/logout" class="btn logout">Cerrar Sesión</a>
             </div>
         </div>
     </div>
+
+    <!-- Script para manejar el cambio de contraseña -->
+    <script>
+        // Función para mostrar/ocultar el formulario de cambio de contraseña
+        function toggleChangePasswordForm() {
+            const form = document.getElementById("changePasswordForm");
+            form.style.display = form.style.display === "none" ? "block" : "none";
+        }
+
+        // Función para cambiar la contraseña
+        async function changePassword() {
+            const nuevaContraseña = document.getElementById("nuevaContraseña").value;
+            const confirmarContraseña = document.getElementById("confirmarContraseña").value;
+
+            if (nuevaContraseña !== confirmarContraseña) {
+                alert("Las contraseñas no coinciden.");
+                return;
+            }
+
+            try {
+                const response = await fetch("/cambiar_contraseña", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        nueva_contraseña: nuevaContraseña,
+                    }),
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    alert(data.message);
+                    toggleChangePasswordForm(); // Ocultar el formulario después de cambiar la contraseña
+                } else {
+                    alert(data.error || "Error al cambiar la contraseña.");
+                }
+            } catch (error) {
+                alert("Error de conexión.");
+            }
+        }
+    </script>
 </body>
 </html>
