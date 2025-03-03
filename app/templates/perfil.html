@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Perfil de Usuario</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: linear-gradient(to right, #1e3c72, #2a5298);
+        }
+
+        .profile-container {
+            text-align: center;
+        }
+
+        .profile-card {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            width: 300px;
+        }
+
+        .icon-placeholder {
+            margin-bottom: 15px;
+        }
+
+        h2 {
+            margin-bottom: 5px;
+            color: #333;
+        }
+
+        .user-role {
+            font-size: 14px;
+            color: gray;
+            margin-bottom: 20px;
+        }
+
+        .profile-info {
+            text-align: left;
+            margin-bottom: 20px;
+        }
+
+        .profile-info p {
+            margin: 10px 0;
+            font-size: 14px;
+            color: #333;
+        }
+
+        .profile-info label {
+            font-weight: bold;
+            margin-right: 10px;
+        }
+
+        .profile-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 10px;
+            border-radius: 5px;
+            text-decoration: none;
+            text-align: center;
+            color: white;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+
+        .btn:hover {
+            opacity: 0.8;
+        }
+
+        .btn:first-child {
+            background: #007bff;
+        }
+
+        .btn.logout {
+            background: #dc3545;
+        }
+
+        .btn.change-password {
+            background: #28a745;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="profile-container">
+        <div class="profile-card">
+            <div class="icon-placeholder">
+                <svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" fill="currentColor" class="bi bi-person-circle" viewBox="0 0 16 16">
+                    <path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0"/>
+                    <path fill-rule="evenodd" d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8m8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1"/>
+                </svg>
+            </div>
+            <h2>{{ usuario.nombre }} {{ usuario.apellidos }}</h2>
+            <p class="user-role">{{ "Administrador" if usuario.es_admin else "Usuario" }}</p>
+
+            <!-- Información del perfil -->
+            <div class="profile-info">
+                <p><label>Nombre:</label> {{ usuario.nombre }}</p>
+                <p><label>Apellidos:</label> {{ usuario.apellidos }}</p>
+                <p><label>Correo:</label> {{ usuario.correo }}</p>
+                <p>
+                    <label>Contraseña:</label>
+                    <span>********</span>
+                    <p class="password-info">La contraseña está cifrada por seguridad.</p>
+                </p>
+            </div>
+
+            <!-- Acciones del perfil -->
+            <div class="profile-actions">
+                <a href="/editar_perfil" class="btn">Editar Perfil</a>
+                <a href="/cambiar_contraseña" class="btn change-password">Cambiar Contraseña</a>
+                <a href="/logout" class="btn logout">Cerrar Sesión</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
