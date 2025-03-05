@@ -222,6 +222,17 @@ def cambiar_contraseña():
 
 
 
+
+@app.route('/forgot_password', methods=['GET', 'POST'])
+def forgot_password():
+    if request.method == 'POST':
+        correo = request.form.get('correo')
+        # Aquí puedes agregar lógica para enviar un correo de recuperación
+        flash("Si tu correo está registrado, recibirás instrucciones para recuperar tu contraseña.", "info")
+        return redirect(url_for('login'))
+    
+    return render_template('forgot_password.html')
+
 # ========================== EJECUCIÓN ==========================
 if __name__ == "__main__":
     debug_mode = os.getenv("FLASK_DEBUG", "False").lower() == "true"
