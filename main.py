@@ -222,16 +222,79 @@ def cambiar_contraseña():
 
 
 
-
 @app.route('/forgot_password', methods=['GET', 'POST'])
 def forgot_password():
+    show_verification = False  # Controla la visibilidad del campo de verificación
+    correo = ""
+
     if request.method == 'POST':
-        correo = request.form.get('correo')
-        # Aquí puedes agregar lógica para enviar un correo de recuperación
-        flash("Si tu correo está registrado, recibirás instrucciones para recuperar tu contraseña.", "info")
-        return redirect(url_for('login'))
-    
-    return render_template('forgot_password.html')
+        if 'code' in request.form:  # Verificar el código
+            codigo_ingresado = request.form.get('code')
+            codigo_verificacion = session.get('codigo_verificacion')
+
+            if codigo_ingresado == codigo_verificacion:
+                session.pop('codigo_verificacion', None)
+                session['reset_email'] = session.get('correo_reset')
+                return redirect(url_for('reset_password'))  # Redirigir a la página de cambio de contraseña
+            else:
+                flash('Código de verificación incorrecto', 'danger')
+                show_verification = True  
+
+        else:  # Primer paso: solicitar correo
+            correo = request.form.get('correo')
+            usuario = Usuario.query.filter_by(correo=correo).first()
+
+            if usuario:
+                # Generar código de verificación
+                codigo_verificacion = str(random.randint(100000, 999999))
+                session['codigo_verificacion'] = codigo_verificacion
+                session['correo_reset'] = correo  # Guardar el correo en sesión
+
+                # Enviar el código por correo con SendGrid
+                message = Mail(
+                    from_email=app.config['MAIL_DEFAULT_SENDER'],
+                    to_emails=correo,
+                    subject='Código de Recuperación de Contraseña',
+                    plain_text_content=f'Tu código de recuperación es: {codigo_verificacion}'
+                )
+                try:
+                    sg.send(message)
+                    flash('Código enviado al correo', 'info')
+                    show_verification = True  
+                except Exception as e:
+                    flash('Error al enviar el correo de recuperación', 'danger')
+            else:
+                flash('El correo ingresado no está registrado', 'danger')
+
+    return render_template('forgot_password.html', show_verification=show_verification, correo=correo)
+
+
+
+@app.route('/reset_password', methods=['GET', 'POST'])
+def reset_password():
+    if 'reset_email' not in session:
+        flash("No tienes acceso a esta página", "danger")
+        return redirect(url_for('forgot_password'))
+
+    if request.method == 'POST':
+        nueva_contraseña = request.form.get('nueva_contraseña')
+        confirmar_contraseña = request.form.get('confirmar_contraseña')
+
+        if nueva_contraseña != confirmar_contraseña:
+            flash("Las contraseñas no coinciden", "danger")
+            return redirect(url_for('reset_password'))
+
+        usuario = Usuario.query.filter_by(correo=session['reset_email']).first()
+
+        if usuario:
+            usuario.contraseña = generate_password_hash(nueva_contraseña)
+            db.session.commit()
+            session.pop('reset_email', None)
+            flash("Contraseña cambiada con éxito", "success")
+            return redirect(url_for('login'))
+
+    return render_template('reset_password.html')
+
 
 # ========================== EJECUCIÓN ==========================
 if __name__ == "__main__":
