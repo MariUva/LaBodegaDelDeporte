@@ -210,5 +210,26 @@
             }
         }
     </script>
+    <script>
+        let inactivityTime = function () {
+            let time;
+            window.onload = resetTimer;
+            document.onmousemove = resetTimer;
+            document.onkeypress = resetTimer;
+
+            function logout() {
+                alert("Tu sesión ha sido cerrada por inactividad.");
+                window.location.href = "{{ url_for('logout') }}";
+            }
+
+            function resetTimer() {
+                clearTimeout(time);
+                time = setTimeout(logout, 180000); // 30000 ms = 30 segundos
+            }
+        };
+
+        inactivityTime();
+    </script>
+
 </body>
 </html>
