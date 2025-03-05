@@ -77,61 +77,46 @@ def categorias_deportes():
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    show_verification = False
-    correo = ""
-
     if request.method == 'POST':
         correo = request.form.get('correo')
         contraseña = request.form.get('contraseña')
 
-        if 'code' in request.form:  # Verificar código de verificación
-            codigo_ingresado = request.form.get('code')
-            codigo_verificacion = session.get('codigo_verificacion')
+        user = Usuario.query.filter_by(correo=correo).first()
 
-            if codigo_ingresado == codigo_verificacion:
-                session.pop('codigo_verificacion', None)
-                session['id'] = session.get('usuario_id')
+        if user and check_password_hash(user.contraseña, contraseña):
+            session['usuario_id'] = user.id
+            session['correo'] = user.correo
+
+            if user.es_admin:
+                # Generar código de verificación
+                codigo_verificacion = str(random.randint(100000, 999999))
+                session['codigo_verificacion'] = codigo_verificacion
+
+                # Enviar código al correo con SendGrid
+                message = Mail(
+                    from_email=app.config['MAIL_DEFAULT_SENDER'],
+                    to_emails=user.correo,
+                    subject='Código de Verificación',
+                    plain_text_content=f'Tu código de verificación es: {codigo_verificacion}'
+                )
+                try:
+                    sg.send(message)
+                    flash('Código enviado al correo', 'info')
+                except Exception as e:
+                    flash('Error al enviar el correo de verificación', 'danger')
+
+                return redirect(url_for('verify'))  # Redirigir directamente a la verificación
+
+            else:
+                # Si no es administrador, iniciar sesión normal
+                session['id'] = user.id
                 flash('Inicio de sesión exitoso', 'success')
-                return redirect(url_for('categorias'))  # Redirigir a categorias.html
-            else:
-                flash('Código de verificación incorrecto', 'danger')
-                show_verification = True  # Volver a mostrar el campo de verificación
+                return redirect(url_for('categorias'))
 
-        else:  # Verificar usuario y contraseña
-            user = Usuario.query.filter_by(correo=correo).first()
+        flash('Correo o contraseña incorrectos', 'danger')
 
-            if user and check_password_hash(user.contraseña, contraseña):
-                session['usuario_id'] = user.id
-                session['correo'] = user.correo
+    return render_template('login.html')
 
-                # Verificar si el usuario es administrador
-                if user.es_admin:
-                    # Generar código de verificación
-                    codigo_verificacion = str(random.randint(100000, 999999))
-                    session['codigo_verificacion'] = codigo_verificacion
-
-                    # Enviar el código por correo con SendGrid
-                    message = Mail(
-                        from_email=app.config['MAIL_DEFAULT_SENDER'],
-                        to_emails=user.correo,
-                        subject='Código de Verificación',
-                        plain_text_content=f'Tu código de verificación es: {codigo_verificacion}'
-                    )
-                    try:
-                        sg.send(message)
-                        flash('Código enviado al correo', 'info')
-                        show_verification = True
-                    except Exception as e:
-                        flash('Error al enviar el correo de verificación', 'danger')
-                else:
-                    # Si no es administrador, iniciar sesión directamente
-                    session['id'] = user.id
-                    flash('Inicio de sesión exitoso', 'success')
-                    return redirect(url_for('categorias'))  # Redirigir a categorias.html
-            else:
-                flash('Correo o contraseña incorrectos', 'danger')
-
-    return render_template('login.html', show_verification=show_verification, correo=correo)
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -159,15 +144,18 @@ def register():
 
 @app.route('/verify', methods=['GET', 'POST'])
 def verify():
+    if 'correo' not in session or 'codigo_verificacion' not in session:
+        flash("Acceso no autorizado", "danger")
+        return redirect(url_for('login'))
+
     if request.method == 'POST':
         codigo_ingresado = request.form.get('code')
         codigo_verificacion = session.get('codigo_verificacion')
 
         if codigo_ingresado == codigo_verificacion:
-            # Código válido, permitir acceso
             session['id'] = Usuario.query.filter_by(correo=session.get('correo')).first().id
             session.pop('codigo_verificacion', None)
-            session.pop('correo_usuario', None)
+            session.pop('correo', None)
             flash('Verificación exitosa', 'success')
             return redirect(url_for('categorias'))
         else:
