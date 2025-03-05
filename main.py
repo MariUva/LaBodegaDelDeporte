@@ -220,6 +220,8 @@ def cambiar_contraseña():
 
     return jsonify({"message": "Contraseña actualizada correctamente"}), 200
 
+
+
 # ========================== EJECUCIÓN ==========================
 if __name__ == "__main__":
     debug_mode = os.getenv("FLASK_DEBUG", "False").lower() == "true"
