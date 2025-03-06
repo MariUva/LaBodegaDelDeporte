@@ -1,4 +1,5 @@
 import os
+import re
 import random
 from flask import Flask, render_template, request, redirect, url_for, session, flash
 from flask_sqlalchemy import SQLAlchemy
@@ -118,6 +119,10 @@ def login():
     return render_template('login.html')
 
 
+def validar_contraseña(password):
+    """Verifica que la contraseña tenga al menos 8 caracteres, una mayúscula, un número y un carácter especial."""
+    return bool(re.match(r"^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$", password))
+
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
@@ -125,14 +130,22 @@ def register():
         apellidos = request.form.get('apellidos')
         correo = request.form.get('correo')
         contraseña = request.form.get('contraseña')
-        
+
+        # Validación de contraseña
+        if not validar_contraseña(contraseña):
+            flash("La contraseña debe tener al menos 8 caracteres, una mayúscula, un número y un carácter especial.", "danger")
+            return redirect(url_for('register'))
+
+        # Verificar si el correo ya está registrado
         if Usuario.query.filter_by(correo=correo).first():
-            flash('El correo ya está registrado', 'warning')
+            flash('El correo ya está registrado.', 'warning')
             return redirect(url_for('register'))
         
+        # Encriptar la contraseña antes de guardarla
         hashed_contraseña = generate_password_hash(contraseña)
 
-        new_user = Usuario(nombre=nombre,apellidos=apellidos, correo=correo, contraseña=hashed_contraseña)
+        # Crear nuevo usuario y guardarlo en la base de datos
+        new_user = Usuario(nombre=nombre, apellidos=apellidos, correo=correo, contraseña=hashed_contraseña)
         db.session.add(new_user)
         db.session.commit()
 
@@ -140,6 +153,7 @@ def register():
         return redirect(url_for('login'))
 
     return render_template('register.html')
+
 
 
 @app.route('/verify', methods=['GET', 'POST'])

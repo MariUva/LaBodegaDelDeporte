@@ -120,5 +120,22 @@
         
         <p class="login-link">¿Ya tienes cuenta? <a href="{{ url_for('login') }}">Inicia sesión aquí</a></p>
     </div>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const form = document.querySelector("form");
+            const passwordInput = document.querySelector("input[name='contraseña']");
+            
+            form.addEventListener("submit", function (event) {
+                const password = passwordInput.value;
+                const passwordRegex = /^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+    
+                if (!passwordRegex.test(password)) {
+                    event.preventDefault(); // Evita el envío del formulario
+                    alert("La contraseña debe tener al menos 8 caracteres, una mayúscula, un número y un carácter especial.");
+                }
+            });
+        });
+    </script>
+    
 </body>
 </html>
