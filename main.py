@@ -211,17 +211,26 @@ def cambiar_contraseña():
     if not nueva_contraseña:
         return jsonify({"error": "La nueva contraseña es requerida"}), 400
 
+    # Validar la nueva contraseña antes de actualizarla
+    if not validar_contraseña(nueva_contraseña):
+        return jsonify({"error": "La contraseña debe tener al menos 8 caracteres, una mayúscula, un número y un carácter especial."}), 400
+
     # Obtener el usuario actual
     usuario = Usuario.query.get(session['id'])
     if not usuario:
         return jsonify({"error": "Usuario no encontrado"}), 404
 
-    # Actualizar la contraseña
+    # Actualizar la contraseña con hash seguro
     usuario.contraseña = generate_password_hash(nueva_contraseña)
     db.session.commit()
 
     return jsonify({"message": "Contraseña actualizada correctamente"}), 200
 
+
+
+def validar_contraseña(password):
+    """Verifica que la contraseña tenga al menos 8 caracteres, una mayúscula, un número y un carácter especial."""
+    return bool(re.match(r"^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$", password))
 
 
 @app.route('/forgot_password', methods=['GET', 'POST'])
@@ -271,7 +280,6 @@ def forgot_password():
     return render_template('forgot_password.html', show_verification=show_verification, correo=correo)
 
 
-
 @app.route('/reset_password', methods=['GET', 'POST'])
 def reset_password():
     if 'reset_email' not in session:
@@ -282,8 +290,14 @@ def reset_password():
         nueva_contraseña = request.form.get('nueva_contraseña')
         confirmar_contraseña = request.form.get('confirmar_contraseña')
 
+        # Verificar que las contraseñas coincidan
         if nueva_contraseña != confirmar_contraseña:
             flash("Las contraseñas no coinciden", "danger")
+            return redirect(url_for('reset_password'))
+
+        # Validar requisitos de seguridad de la contraseña
+        if not validar_contraseña(nueva_contraseña):
+            flash("La contraseña debe tener al menos 8 caracteres, una mayúscula, una minúscula, un número y un carácter especial.", "danger")
             return redirect(url_for('reset_password'))
 
         usuario = Usuario.query.filter_by(correo=session['reset_email']).first()
