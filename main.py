@@ -51,21 +51,19 @@ def home():
 
 @app.route("/categorias")
 def categorias():
-    if 'id' not in session:
+    if 'usuario_id' not in session:  # 🔥 Aquí el cambio
         flash("Debes iniciar sesión para acceder a esta página", "warning")
         return redirect(url_for('login'))
 
-    db_session = db.session  # Si estás usando `db` de SQLAlchemy
+    db_session = db.session  
 
     # Obtener el usuario actual desde la base de datos
-    usuario = db_session.get(Usuario, session['id'])
-
+    usuario = db_session.get(Usuario, session['usuario_id'])  # 🔥 Aquí el cambio
 
     if not usuario:
         flash("Usuario no encontrado", "danger")
         return redirect(url_for('login'))
 
-    # Pasar el nombre del usuario a la plantilla
     return render_template("categorias.html", nombre=usuario.nombre)
 
 
@@ -78,6 +76,9 @@ def categorias_deportes():
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
+    if 'intentos_fallidos' not in session:
+        session['intentos_fallidos'] = 0
+
     if request.method == 'POST':
         correo = request.form.get('correo')
         contraseña = request.form.get('contraseña')
@@ -85,6 +86,9 @@ def login():
         user = Usuario.query.filter_by(correo=correo).first()
 
         if user and check_password_hash(user.contraseña, contraseña):
+            # Reiniciar intentos fallidos al iniciar sesión correctamente
+            session.permanent = True
+            session['intentos_fallidos'] = 0
             session['usuario_id'] = user.id
             session['correo'] = user.correo
 
@@ -106,15 +110,21 @@ def login():
                 except Exception as e:
                     flash('Error al enviar el correo de verificación', 'danger')
 
-                return redirect(url_for('verify'))  # Redirigir directamente a la verificación
+                return redirect(url_for('verify'))  # Redirigir a la verificación
 
             else:
-                # Si no es administrador, iniciar sesión normal
-                session['id'] = user.id
                 flash('Inicio de sesión exitoso', 'success')
+                print("Sesión antes de redirigir:", session)
                 return redirect(url_for('categorias'))
 
-        flash('Correo o contraseña incorrectos', 'danger')
+        # Si la autenticación falla, incrementar el contador de intentos
+        session['intentos_fallidos'] += 1
+
+        if session['intentos_fallidos'] >= 3:
+            flash("Has alcanzado el límite de intentos fallidos. Restablece tu contraseña.", "warning")
+            return redirect(url_for('reset_password'))  # Redirigir a la página de recuperación de contraseña
+        else:
+            flash(f'Correo o contraseña incorrectos. Intento {session["intentos_fallidos"]}/3', 'danger')
 
     return render_template('login.html')
 
@@ -179,12 +189,12 @@ def verify():
 
 @app.route('/perfil')
 def perfil():
-    if 'id' not in session:
+    if 'usuario_id' not in session:  # 🔥 Cambiado de 'id' a 'usuario_id'
         flash("Debes iniciar sesión para acceder a esta página", "warning")
         return redirect(url_for('login'))
 
     # Obtener el usuario actual desde la base de datos
-    usuario = Usuario.query.get(session['id'])
+    usuario = Usuario.query.get(session['usuario_id'])  # 🔥 Cambio en la clave de sesión
     if not usuario:
         flash("Usuario no encontrado", "danger")
         return redirect(url_for('login'))
@@ -202,28 +212,33 @@ from flask import request, jsonify
 
 @app.route('/cambiar_contraseña', methods=['POST'])
 def cambiar_contraseña():
-    if 'id' not in session:
+
+    print("Contenido de la sesión:", session)  # Verifica si llega aquí
+
+    if 'usuario_id' not in session:
         return jsonify({"error": "Debes iniciar sesión para acceder a esta página"}), 401
 
     data = request.get_json()
-    nueva_contraseña = data.get('nueva_contraseña')
+    print(f"Datos recibidos: {data}")  # Verifica si llegan los datos
 
+    nueva_contraseña = data.get('nueva_contraseña')
     if not nueva_contraseña:
+        print("Error: No se envió la contraseña")
         return jsonify({"error": "La nueva contraseña es requerida"}), 400
 
-    # Validar la nueva contraseña antes de actualizarla
     if not validar_contraseña(nueva_contraseña):
+        print("Error: Contraseña no cumple con los requisitos")
         return jsonify({"error": "La contraseña debe tener al menos 8 caracteres, una mayúscula, un número y un carácter especial."}), 400
 
-    # Obtener el usuario actual
-    usuario = Usuario.query.get(session['id'])
+    usuario = Usuario.query.get(session['usuario_id'])
     if not usuario:
+        print("Error: Usuario no encontrado en la BD")
         return jsonify({"error": "Usuario no encontrado"}), 404
 
-    # Actualizar la contraseña con hash seguro
     usuario.contraseña = generate_password_hash(nueva_contraseña)
     db.session.commit()
-
+    print("Contraseña actualizada exitosamente")
+    
     return jsonify({"message": "Contraseña actualizada correctamente"}), 200
 
 
