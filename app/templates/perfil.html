@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Perfil de Usuario</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Perfil de Usuario</title>
     <style>
         * {
             margin: 0;
@@ -29,8 +31,25 @@
             padding: 30px;
             border-radius: 10px;
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-            width: 300px;
+            width: 320px;
+            position: relative;
+        }.back-btn {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            background: none;
+            border: none;
+            font-size: 18px; /* Tamaño más pequeño */
+            cursor: pointer;
+            color: #007bff; /* Azul */
+            transition: color 0.3s;
         }
+
+        .back-btn:hover {
+            color: #0056b3; /* Azul más oscuro al pasar el mouse */
+        }
+
+
 
         .icon-placeholder {
             margin-bottom: 15px;
@@ -67,16 +86,19 @@
             display: flex;
             flex-direction: column;
             gap: 10px;
+            align-items: center;
         }
 
         .btn {
-            display: inline-block;
+            width: 100%;
             padding: 10px;
             border-radius: 5px;
             text-decoration: none;
             text-align: center;
             color: white;
             font-weight: bold;
+            border: none;
+            cursor: pointer;
             transition: 0.3s;
         }
 
@@ -84,22 +106,17 @@
             opacity: 0.8;
         }
 
-        .btn:first-child {
-            background: #007bff;
+        .btn.change-password {
+            background: #28a745;
         }
 
         .btn.logout {
             background: #dc3545;
         }
 
-        .btn.change-password {
-            background: #28a745;
-            margin-top: 10px;
-        }
-
         .change-password-form {
-            display: none; /* Oculto por defecto */
-            margin-top: 20px;
+            display: none;
+            margin-top: 15px;
         }
 
         .change-password-form input {
@@ -120,15 +137,16 @@
             cursor: pointer;
             font-weight: bold;
         }
-
-        .change-password-form button:hover {
-            opacity: 0.8;
-        }
     </style>
 </head>
 <body>
     <div class="profile-container">
         <div class="profile-card">
+            
+            <!-- Botón de regreso -->
+            <button class="back-btn" onclick="window.location.href='/categorias'">←</button>
+
+
             <div class="icon-placeholder">
                 <svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" fill="currentColor" class="bi bi-person-circle" viewBox="0 0 16 16">
                     <path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0"/>
@@ -162,7 +180,6 @@
 
             <!-- Acciones del perfil -->
             <div class="profile-actions">
-                <a href="/editar_perfil" class="btn">Editar Perfil</a>
                 <a href="/logout" class="btn logout">Cerrar Sesión</a>
             </div>
         </div>
