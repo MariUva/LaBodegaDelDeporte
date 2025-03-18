@@ -5,51 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Administración - La Bodega del Deporte</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='admin.css') }}">
-</head>
-<body>
-    <header>
-        <h1>Bienvenid@ {{ nombre }}, a la administración</h1>
-    </header>
-
-    <div class="container">
-        <button onclick="window.location.href='/ver_usuarios'">Ver Usuarios</button>
-        <button onclick="document.getElementById('crearProductoModal').style.display='block'">Crear Producto</button>
-    </div>
-
-    <!-- Modal para crear producto -->
-    <div id="crearProductoModal" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="document.getElementById('crearProductoModal').style.display='none'">&times;</span>
-            <h2>Crear Producto</h2>
-            <form action="/crear_producto" method="POST">
-                <label for="nombre">Nombre:</label>
-                <input type="text" id="nombre" name="nombre" required>
-
-                <label for="precio">Precio:</label>
-                <input type="number" id="precio" name="precio" required>
-
-                <label for="categoria">Categoría:</label>
-                <input type="text" id="categoria" name="categoria" required>
-
-                <label for="stock">Stock:</label>
-                <input type="number" id="stock" name="stock" required>
-
-                <button type="submit">Guardar Producto</button>
-            </form>
-        </div>
-    </div>
-
     <style>
         body {
             font-family: Arial, sans-serif;
             text-align: center;
             background-color: #f4f4f4;
         }
-
         .container {
             margin: 20px;
         }
-
         button {
             background-color: #008CBA;
             color: white;
@@ -59,11 +23,9 @@
             margin: 10px;
             font-size: 16px;
         }
-
         button:hover {
             background-color: #005f75;
         }
-
         .modal {
             display: none;
             position: fixed;
@@ -74,7 +36,6 @@
             height: 100%;
             background-color: rgba(0, 0, 0, 0.4);
         }
-
         .modal-content {
             background-color: white;
             margin: 10% auto;
@@ -82,12 +43,153 @@
             width: 50%;
             border-radius: 10px;
         }
-
         .close {
             float: right;
             font-size: 28px;
             cursor: pointer;
         }
+        .user-menu {
+            position: absolute;
+            top: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: white;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            width: 150px;
+            visibility: hidden; /* Oculto por defecto */
+            opacity: 0;
+            transition: opacity 0.2s ease-in-out, visibility 0.2s ease-in-out;
+        }
+        .user-menu ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .user-menu ul li {
+            padding: 10px;
+            cursor: pointer;
+        }
+        .user-menu ul li a {
+            text-decoration: none;
+            color: black;
+            display: block;
+        }
+        .user-menu ul li:hover {
+            background: #f0f0f0;
+        }
+        .user-container {
+            position: relative;
+            display: inline-block;
+        }
+
+        .user-menu.show {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        .user-menu ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .user-menu ul li {
+            padding: 10px;
+            cursor: pointer;
+        }
+
+        .user-menu ul li a {
+            text-decoration: none;
+            color: black;
+            display: block;
+        }
+
+        .user-menu ul li:hover {
+            background: #f0f0f0;
+        }
+
+
+        
     </style>
+</head>
+<body>
+    <header>
+        <h1>Bienvenid@ {{ nombre }}, a la administración</h1>
+        <div class="user-container">
+            <button class="icon-user" id="user-menu-button">
+                <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="currentColor" viewBox="0 0 16 16">
+                    <path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0"/>
+                    <path fill-rule="evenodd" d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8m8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1"/>
+                </svg>
+            </button>
+            <div id="user-menu" class="user-menu">
+                <ul>
+                    
+                    <li><a href="/logout">Cerrar Sesión</a></li>
+                </ul>
+            </div>
+        </div>
+        
+
+
+    </header>
+    <div class="container">
+        <button onclick="window.location.href='/ver_usuarios'">Ver Usuarios</button>
+        <button onclick="document.getElementById('crearProductoModal').style.display='block'">Crear Producto</button>
+    </div>
+    <div id="crearProductoModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="document.getElementById('crearProductoModal').style.display='none'">&times;</span>
+            <h2>Crear Producto</h2>
+            <form action="/crear_producto" method="POST">
+                <label for="nombre">Nombre:</label>
+                <input type="text" id="nombre" name="nombre" required>
+                <label for="precio">Precio:</label>
+                <input type="number" id="precio" name="precio" required>
+                <label for="categoria">Categoría:</label>
+                <input type="text" id="categoria" name="categoria" required>
+                <label for="stock">Stock:</label>
+                <input type="number" id="stock" name="stock" required>
+                <button type="submit">Guardar Producto</button>
+            </form>
+        </div>
+    </div>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const userButton = document.getElementById("user-menu-button");
+            const userMenu = document.getElementById("user-menu");
+            userButton.addEventListener("click", function (event) {
+                event.stopPropagation();
+                userMenu.style.display = userMenu.style.display === "block" ? "none" : "block";
+            });
+            document.addEventListener("click", function (event) {
+                if (!userMenu.contains(event.target) && !userButton.contains(event.target)) {
+                    userMenu.style.display = "none";
+                }
+            });
+        });
+    </script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const userButton = document.getElementById("user-menu-button");
+            const userMenu = document.getElementById("user-menu");
+    
+            // Alternar visibilidad del menú con clase "show"
+            userButton.addEventListener("click", function (event) {
+                event.stopPropagation();
+                userMenu.classList.toggle("show");
+            });
+    
+            // Cerrar menú si se hace clic fuera de él
+            document.addEventListener("click", function (event) {
+                if (!userMenu.contains(event.target) && !userButton.contains(event.target)) {
+                    userMenu.classList.remove("show");
+                }
+            });
+        });
+    </script>
+    
 </body>
 </html>
