@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Administración - La Bodega del Deporte</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='admin.css') }}">
+</head>
+<body>
+    <header>
+        <h1>Bienvenid@ {{ nombre }}, a la administración</h1>
+    </header>
+
+    <div class="container">
+        <button onclick="window.location.href='/ver_usuarios'">Ver Usuarios</button>
+        <button onclick="document.getElementById('crearProductoModal').style.display='block'">Crear Producto</button>
+    </div>
+
+    <!-- Modal para crear producto -->
+    <div id="crearProductoModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="document.getElementById('crearProductoModal').style.display='none'">&times;</span>
+            <h2>Crear Producto</h2>
+            <form action="/crear_producto" method="POST">
+                <label for="nombre">Nombre:</label>
+                <input type="text" id="nombre" name="nombre" required>
+
+                <label for="precio">Precio:</label>
+                <input type="number" id="precio" name="precio" required>
+
+                <label for="categoria">Categoría:</label>
+                <input type="text" id="categoria" name="categoria" required>
+
+                <label for="stock">Stock:</label>
+                <input type="number" id="stock" name="stock" required>
+
+                <button type="submit">Guardar Producto</button>
+            </form>
+        </div>
+    </div>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f4f4f4;
+        }
+
+        .container {
+            margin: 20px;
+        }
+
+        button {
+            background-color: #008CBA;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            cursor: pointer;
+            margin: 10px;
+            font-size: 16px;
+        }
+
+        button:hover {
+            background-color: #005f75;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.4);
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 10% auto;
+            padding: 20px;
+            width: 50%;
+            border-radius: 10px;
+        }
+
+        .close {
+            float: right;
+            font-size: 28px;
+            cursor: pointer;
+        }
+    </style>
+</body>
+</html>
