@@ -21,6 +21,7 @@ mail = Mail(app)
 # Inicializar la base de datos
 db = SQLAlchemy(app)
 
+
 # ========================== MODELOS ==========================
 
 class Usuario(db.Model):
@@ -37,8 +38,26 @@ class Producto(db.Model):
     nombre = db.Column(db.String(100), nullable=False)
     precio = db.Column(db.Float, nullable=False)
 
+
+# Tabla intermedia para la relación muchos a muchos entre Categoria y Marca
+categoria_marca = db.Table('categoria_marca',
+    db.Column('categoria_id', db.Integer, db.ForeignKey('categoria.id'), primary_key=True),
+    db.Column('marca_id', db.Integer, db.ForeignKey('marca.id'), primary_key=True)
+)
+
+class Categoria(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    nombre = db.Column(db.String(100), nullable=False, unique=True)
+    marcas = db.relationship('Marca', secondary=categoria_marca, backref=db.backref('categorias', lazy=True))
+
+class Marca(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    nombre = db.Column(db.String(100), nullable=False)
+
+
 # ========================== RUTAS ==========================
 
+# Ruta principal de la aplicación que obtiene y muestra hasta 2 productos desde la base de datos en la página de inicio.
 @app.route("/")
 def home():
     try:
@@ -48,32 +67,43 @@ def home():
         productos = []
     return render_template("index.html", productos=productos)
 
-
+# Ruta para gestionar y mostrar las categorías con sus marcas, asegurando que el usuario esté autenticado antes de acceder.
 @app.route("/categorias")
 def categorias():
-    if 'usuario_id' not in session:  # 🔥 Aquí el cambio
+    print("📌 Entrando a /categorias")  
+
+    if 'usuario_id' not in session:  
+        print("⚠️ Usuario no autenticado")
         flash("Debes iniciar sesión para acceder a esta página", "warning")
         return redirect(url_for('login'))
 
     db_session = db.session  
-
-    # Obtener el usuario actual desde la base de datos
-    usuario = db_session.get(Usuario, session['usuario_id'])  # 🔥 Aquí el cambio
+    usuario = db_session.get(Usuario, session['usuario_id'])  
 
     if not usuario:
+        print("⚠️ Usuario no encontrado en la base de datos")
         flash("Usuario no encontrado", "danger")
         return redirect(url_for('login'))
 
-    return render_template("categorias.html", nombre=usuario.nombre)
+    # 🔹 Obtener todas las categorías con sus marcas
+    categorias = db_session.query(Categoria).options(db.joinedload(Categoria.marcas)).all()
 
+    if not categorias:
+        print("⚠️ No se encontraron categorías en la base de datos")
 
+    # Convertimos la consulta en un diccionario { "Categoria1": ["Marca1", "Marca2"], ... }
+    categorias_dict = {categoria.nombre: [marca.nombre for marca in categoria.marcas] for categoria in categorias}
 
+    return render_template("categorias.html", nombre=usuario.nombre, categorias=categorias_dict)
+
+# Ruta que muestra la página de categorías de deportes con una selección aleatoria de 3 productos.
 @app.route("/categorias/deportes")
 def categorias_deportes():
     productos = Producto.query.order_by(db.func.random()).limit(3).all()  # Seleccionar 3 productos aleatorios
     return render_template("categorias_deportes.html", productos=productos)
 
-
+# Ruta para el inicio de sesión que verifica las credenciales del usuario, 
+# maneja intentos fallidos y envía un código de verificación si el usuario es administrador.
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if 'intentos_fallidos' not in session:
@@ -128,11 +158,14 @@ def login():
 
     return render_template('login.html')
 
-
+# Función para validar que una contraseña cumpla con los requisitos de seguridad: 
+# mínimo 8 caracteres, al menos una mayúscula, un número y un carácter especial.
 def validar_contraseña(password):
     """Verifica que la contraseña tenga al menos 8 caracteres, una mayúscula, un número y un carácter especial."""
     return bool(re.match(r"^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$", password))
 
+# Ruta para el registro de nuevos usuarios, validando la contraseña, evitando duplicados 
+# y almacenando la contraseña encriptada en la base de datos.
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
@@ -165,7 +198,8 @@ def register():
     return render_template('register.html')
 
 
-
+# Ruta para la verificación en dos pasos, donde el usuario ingresa un código enviado a su correo 
+# para completar el inicio de sesión, asegurando el acceso solo a usuarios autenticados.
 @app.route('/verify', methods=['GET', 'POST'])
 def verify():
     if 'correo' not in session or 'codigo_verificacion' not in session:
@@ -177,24 +211,40 @@ def verify():
         codigo_verificacion = session.get('codigo_verificacion')
 
         if codigo_ingresado == codigo_verificacion:
-            session['id'] = Usuario.query.filter_by(correo=session.get('correo')).first().id
-            session.pop('codigo_verificacion', None)
-            session.pop('correo', None)
-            flash('Verificación exitosa', 'success')
-            return redirect(url_for('categorias'))
-        else:
-            flash('Código de verificación incorrecto', 'danger')
+            user = Usuario.query.filter_by(correo=session.get('correo')).first()
+            if user:
+                session['id'] = user.id
+                session.pop('codigo_verificacion', None)
+                session.pop('correo', None)
+                flash('Verificación exitosa', 'success')
+
+                # Redirigir según el rol del usuario
+                if user.es_admin:
+                    return redirect(url_for('categorias_admin'))  # Ruta corregida
+                else:
+                    return redirect(url_for('categorias'))
+
+        flash('Código de verificación incorrecto', 'danger')
 
     return render_template('verify.html')
 
+# Ruta de administración de categorías, accesible solo para usuarios con privilegios de administrador.
+@app.route('/categorias_admin')
+def categorias_admin():
+    if 'id' not in session or not Usuario.query.get(session['id']).es_admin:
+        flash("Acceso no autorizado", "danger")
+        return redirect(url_for('login'))
+    return render_template('categorias_admin.html')
+
+# Ruta para mostrar el perfil del usuario autenticado, asegurando que esté registrado en la sesión.
 @app.route('/perfil')
 def perfil():
-    if 'usuario_id' not in session:  # 🔥 Cambiado de 'id' a 'usuario_id'
+    if 'usuario_id' not in session:  
         flash("Debes iniciar sesión para acceder a esta página", "warning")
         return redirect(url_for('login'))
 
     # Obtener el usuario actual desde la base de datos
-    usuario = Usuario.query.get(session['usuario_id'])  # 🔥 Cambio en la clave de sesión
+    usuario = Usuario.query.get(session['usuario_id'])  
     if not usuario:
         flash("Usuario no encontrado", "danger")
         return redirect(url_for('login'))
@@ -202,6 +252,7 @@ def perfil():
     # Pasar el usuario a la plantilla
     return render_template('perfil.html', usuario=usuario)
 
+# Ruta para cerrar sesión, limpiando la sesión del usuario y redirigiéndolo a la página de inicio.
 @app.route('/logout')
 def logout():
     session.clear()
@@ -210,6 +261,8 @@ def logout():
 
 from flask import request, jsonify
 
+# Ruta para cambiar la contraseña del usuario autenticado, validando los requisitos de seguridad 
+# y actualizándola en la base de datos.
 @app.route('/cambiar_contraseña', methods=['POST'])
 def cambiar_contraseña():
 
@@ -241,13 +294,11 @@ def cambiar_contraseña():
     
     return jsonify({"message": "Contraseña actualizada correctamente"}), 200
 
-
-
 def validar_contraseña(password):
     """Verifica que la contraseña tenga al menos 8 caracteres, una mayúscula, un número y un carácter especial."""
     return bool(re.match(r"^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$", password))
 
-
+# Ruta para recuperar la contraseña mediante un código de verificación enviado al correo del usuario.
 @app.route('/forgot_password', methods=['GET', 'POST'])
 def forgot_password():
     show_verification = False  # Controla la visibilidad del campo de verificación
@@ -294,7 +345,8 @@ def forgot_password():
 
     return render_template('forgot_password.html', show_verification=show_verification, correo=correo)
 
-
+# Ruta para restablecer la contraseña de un usuario que ha solicitado recuperación, 
+# validando seguridad y confirmación antes de actualizarla en la base de datos.
 @app.route('/reset_password', methods=['GET', 'POST'])
 def reset_password():
     if 'reset_email' not in session:
@@ -325,6 +377,29 @@ def reset_password():
             return redirect(url_for('login'))
 
     return render_template('reset_password.html')
+
+# ========================== CATEGORIAS ADMIN==========================
+
+# Ruta para visualizar la lista de todos los usuarios registrados en la base de datos.
+@app.route('/ver_usuarios')
+def ver_usuarios():
+    usuarios = Usuario.query.all()
+    return render_template('ver_usuarios.html', usuarios=usuarios)
+
+@app.route('/crear_producto', methods=['POST'])
+def crear_producto():
+    nombre = request.form.get('nombre')
+    precio = request.form.get('precio')
+    categoria = request.form.get('categoria')
+    stock = request.form.get('stock')
+
+    nuevo_producto = Producto(nombre=nombre, precio=precio, categoria=categoria, stock=stock)
+    db.session.add(nuevo_producto)
+    db.session.commit()
+    
+    flash('Producto creado con éxito', 'success')
+    return redirect(url_for('categorias_admin'))
+
 
 
 # ========================== EJECUCIÓN ==========================

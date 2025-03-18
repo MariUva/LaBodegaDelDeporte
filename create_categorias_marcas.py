@@ -18,7 +18,8 @@ with app.app_context():
     marcas = [
         Marca(id=1, nombre="Nike"),
         Marca(id=2, nombre="Adidas"),
-        Marca(id=3, nombre="Puma"),       
+        Marca(id=3, nombre="Puma"), 
+         
     ]
 
     # Agregar y confirmar cambios en la base de datos

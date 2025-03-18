@@ -31,9 +31,16 @@ class Usuario(db.Model):
 class Marca(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     nombre = db.Column(db.String(100), unique=True, nullable=False)
+    
+    # 🔹 Agregar clave foránea para enlazar con Categoria
+    categoria_id = db.Column(db.Integer, db.ForeignKey('categoria.id', ondelete="CASCADE"), nullable=False)
+
+    # 🔹 Relación con Categoria
+    categoria = db.relationship('Categoria', backref=db.backref('marcas', lazy=True, cascade="all, delete-orphan"))
 
     def __repr__(self):
-        return f"<Marca {self.nombre}>"
+        return f"<Marca {self.nombre} - Categoria {self.categoria_id}>"
+
 
 
 # ========================== MODELO DE CATEGORÍAS ==========================

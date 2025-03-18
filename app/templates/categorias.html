@@ -1,3 +1,4 @@
+<!-- Plantilla para la página de categorias de usuario -->
 <!DOCTYPE html>
 <html lang="en">
 	<head>
@@ -49,6 +50,80 @@
 			position: relative;
 			display: inline-block;
 			}
+			
+			body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+            text-align: center;
+			}
+
+			header {
+				background-color: #808080;
+				color: white;
+				padding: 15px;
+				font-size: 24px;
+			}
+
+			.container-marcas {
+				margin: 20px auto;
+				max-width: 800px;
+			}
+
+			h2 {
+				color: #444;
+			}
+
+			.marcas-grid {
+				display: flex;
+				flex-wrap: wrap;
+				gap: 15px;
+				justify-content: center;
+				padding: 10px;
+			}
+
+			.marca-card {
+				background-color: white;
+				border: 2px solid #ddd;
+				border-radius: 8px;
+				padding: 15px 25px;
+				text-align: center;
+				font-weight: bold;
+				box-shadow: 3px 3px 8px rgba(0, 0, 0, 0.1);
+				transition: transform 0.3s ease-in-out, background-color 0.3s;
+				width: 150px;
+			}
+
+			.marca-card:hover {
+				transform: scale(1.1);
+				background-color: #e0e0e0;
+			}
+			.categorias-container {
+				max-width: 800px;
+				margin: 20px auto;
+			}
+
+			.categoria {
+				background-color: #f9f9f9;
+				padding: 15px;
+				border-radius: 8px;
+				margin-bottom: 20px;
+				box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.1);
+			}
+
+			.categoria h3 {
+				color: #333;
+			}
+
+			.marcas-grid {
+				display: flex;
+				flex-wrap: wrap;
+				gap: 15px;
+				justify-content: center;
+			}
+
+			
 
 		</style>
 	</head>
@@ -70,8 +145,13 @@
 						<li><a href="/logout">Cerrar Sesión</a></li>
 					</ul>
 				</div>
+
+				
+
 			</div>
+
 			
+	
 		 
 			 <script>
 				 document.addEventListener("DOMContentLoaded", function () {
@@ -148,6 +228,9 @@
 
 		
 		<script>
+			
+			// Función para cerrar la sesión del usuario por inactividad.
+			
 			let inactivityTime = function () {
 				let time;
 				window.onload = resetTimer;
@@ -170,74 +253,20 @@
 
 
 	</body>
+
+	<h2>Categorías y Marcas</h2>
+	<div class="categorias-container">
+		{% for categoria, marcas in categorias.items() %}
+			<div class="categoria">
+				<h3>{{ categoria }}</h3>
+				<div class="marcas-grid">
+					{% for marca in marcas %}
+						<div class="marca-card">{{ marca }}</div>
+					{% endfor %}
+				</div>
+			</div>
+		{% endfor %}
+	</div>
+
 </html>
 
-
-
-<div class="container-items">
-	<div class="item">
-		<figure>
-			<img
-				src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1170&q=80"
-				alt="producto"
-			/>
-		</figure>
-		<div class="info-product">
-			<h2>Zapatos Nike</h2>
-			<p class="price">$80</p>
-			<button>Añadir al carrito</button>
-		</div>
-	</div>
-	<div class="item">
-		<figure>
-			<img
-				src="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1170&q=80"
-				alt="producto"
-			/>
-		</figure>
-		<div class="info-product">
-			<h2>Audifonos</h2>
-			<p class="price">$20</p>
-			<button>Añadir al carrito</button>
-		</div>
-	</div>
-	<div class="item">
-		<figure>
-			<img
-				src="https://images.unsplash.com/photo-1523275335684-37898b6baf30?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1099&q=80"
-				alt="producto"
-			/>
-		</figure>
-		<div class="info-product">
-			<h2>Reloj</h2>
-			<p class="price">$50</p>
-			<button>Añadir al carrito</button>
-		</div>
-	</div>
-	<div class="item">
-		<figure>
-			<img
-				src="https://images.unsplash.com/photo-1546868871-7041f2a55e12?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=764&q=80"
-				alt="producto"
-			/>
-		</figure>
-		<div class="info-product">
-			<h2>Smartwatch</h2>
-			<p class="price">$90</p>
-			<button>Añadir al carrito</button>
-		</div>
-	</div>
-	<div class="item">
-		<figure>
-			<img
-				src="https://images.unsplash.com/photo-1585386959984-a4155224a1ad?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1074&q=80"
-				alt="producto"
-			/>
-		</figure>
-		<div class="info-product">
-			<h2>Perfume</h2>
-			<p class="price">$50</p>
-			<button>Añadir al carrito</button>
-		</div>
-	</div>
-</div>
