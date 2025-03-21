@@ -1,7 +1,8 @@
 import os
 import re
 import random
-from flask import Flask, render_template, request, redirect, url_for, session, flash
+import paypalrestsdk
+from flask import Flask, json, render_template, request, redirect, url_for, session, flash, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 from config import Config
@@ -455,6 +456,62 @@ def filtrar_productos():
 
     return jsonify({"productos": productos_json})
 
+@app.route('/carrito')
+def ver_carrito():
+    print("Contenido del carrito:", session.get('carrito', []))  # DEBUG
+    return render_template('carrito.html', carrito=session.get('carrito', []))
+
+
+@app.route('/agregar_al_carrito', methods=['POST'])
+def agregar_al_carrito():
+    producto_id = request.form.get('producto_id')
+    
+    if 'carrito' not in session:
+        session['carrito'] = []  # Inicializar el carrito si no existe
+    
+    session['carrito'].append(producto_id)  # Agregar producto al carrito
+    session.modified = True  # Asegurar que se guarde la sesión
+    
+    return redirect(url_for('ver_carrito'))
+
+paypalrestsdk.configure({
+    "mode": os.getenv("PAYPAL_MODE", "sandbox"),  # "sandbox" o "live"
+    "client_id": os.getenv("PAYPAL_CLIENT_ID"),
+    "client_secret": os.getenv("PAYPAL_SECRET")
+})
+
+
+@app.route("/pay", methods=["POST"])
+def create_payment():
+    payment = paypalrestsdk.Payment({
+        "intent": "sale",
+        "payer": {"payment_method": "paypal"},
+        "redirect_urls": {
+            "return_url": "http://localhost:5000/payment/execute",
+            "cancel_url": "http://localhost:5000/payment/cancel"
+        },
+        "transactions": [{
+            "amount": {"total": "10.00", "currency": "USD"},
+            "description": "Compra en La Bodega del Deporte"
+        }]
+    })
+
+    if payment.create():
+        return jsonify({"paymentID": payment.id})
+    else:
+        return jsonify({"error": payment.error}), 400
+
+@app.route("/payment/execute", methods=["POST"])
+def execute_payment():
+    payment_id = request.json.get("paymentID")
+    payer_id = request.json.get("payerID")
+    
+    payment = paypalrestsdk.Payment.find(payment_id)
+    
+    if payment.execute({"payer_id": payer_id}):
+        return jsonify({"status": "success"})
+    else:
+        return jsonify({"error": payment.error}), 400
 
 
 # ========================== EJECUCIÓN ==========================
