@@ -1,266 +1,449 @@
-<!-- Plantilla para la página de categorias de usuario -->
 <!DOCTYPE html>
-<html lang="en">
-	<head>
-		<meta charset="UTF-8" />
-		<meta http-equiv="X-UA-Compatible" content="IE=edge" />
-		<meta
-			name="viewport"
-			content="width=device-width, initial-scale=1.0"
-		/>
-		<title>Página de categorías y marcas.</title>
-		<link rel="stylesheet" href="{{ url_for('static', filename='mujer.css') }}" />
-		<style>
-			.user-menu {
-			position: absolute;
-			top: 100%; /* Lo coloca justo debajo del botón */
-			left: 50%;
-			transform: translateX(-50%); /* Centra el menú con respecto al botón */
-			background: white;
-			border: 1px solid #ccc;
-			border-radius: 5px;
-			box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-			width: 150px;
-			display: none;
-			z-index: 1000;
-		}
-
-			.user-menu ul {
-				list-style: none;
-				padding: 0;
-				margin: 0;
-			}
-			.user-menu ul li {
-				padding: 10px;
-				cursor: pointer;
-			}
-			.user-menu ul li a {
-				text-decoration: none;
-				color: black;
-				display: block;
-			}
-			.user-menu ul li:hover {
-				background: #f0f0f0;
-			}
-			.hidden { 
-				display:  none !important;
-			}
-
-			.user-container {
-			position: relative;
-			display: inline-block;
-			}
-			
-			body {
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Página de Categorías y Marcas</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='mujer.css') }}">
+    <style>
+        /* Estilos generales */
+        body {
             font-family: Arial, sans-serif;
             background-color: #f4f4f4;
             margin: 0;
             padding: 0;
             text-align: center;
-			}
+        }
 
-			header {
-				background-color: #808080;
-				color: white;
-				padding: 15px;
-				font-size: 24px;
-			}
+        header {
+            background-color: #808080;
+            color: white;
+            padding: 15px;
+            font-size: 24px;
+        }
 
-			.container-marcas {
-				margin: 20px auto;
-				max-width: 800px;
-			}
+        /* Contenedor principal */
+        .main-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            padding: 20px;
+        }
 
-			h2 {
-				color: #444;
-			}
+        /* Sección de categorías y marcas */
+        .categorias-marcas-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
 
-			.marcas-grid {
-				display: flex;
-				flex-wrap: wrap;
-				gap: 15px;
-				justify-content: center;
-				padding: 10px;
-			}
+        .categoria {
+            background-color: #f9f9f9;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 300px;
+        }
 
-			.marca-card {
-				background-color: white;
-				border: 2px solid #ddd;
-				border-radius: 8px;
-				padding: 15px 25px;
-				text-align: center;
-				font-weight: bold;
-				box-shadow: 3px 3px 8px rgba(0, 0, 0, 0.1);
-				transition: transform 0.3s ease-in-out, background-color 0.3s;
-				width: 150px;
-			}
+        .categoria h3 {
+            color: #333;
+            margin-bottom: 10px;
+        }
 
-			.marca-card:hover {
-				transform: scale(1.1);
-				background-color: #e0e0e0;
-			}
-			.categorias-container {
-				max-width: 800px;
-				margin: 20px auto;
-			}
+        .marcas-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+        }
 
-			.categoria {
-				background-color: #f9f9f9;
-				padding: 15px;
-				border-radius: 8px;
-				margin-bottom: 20px;
-				box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.1);
-			}
+        .marca-card {
+            background-color: white;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            padding: 10px 20px;
+            text-align: center;
+            font-weight: bold;
+            box-shadow: 3px 3px 8px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease-in-out, background-color 0.3s;
+            width: 120px;
+        }
 
-			.categoria h3 {
-				color: #333;
-			}
+        .marca-card:hover {
+            transform: scale(1.1);
+            background-color: #e0e0e0;
+        }
 
-			.marcas-grid {
-				display: flex;
-				flex-wrap: wrap;
-				gap: 15px;
-				justify-content: center;
-			}
+        /* Filtro de categorías y marcas */
+        .filtro-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            padding: 15px;
+            background: white;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 800px;
+            margin: 20px auto;
+        }
 
-			
+        select, button {
+            padding: 10px;
+            font-size: 16px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            cursor: pointer;
+        }
 
-		</style>
-	</head>
-	<body>
-		<header>
-			<h1>Bienvenid@ {{ nombre }}, a la Bodega Del Deporte</h1>
-            
-			<div class="user-container">
-				<button class="icon-user" aria-label="Abrir menú de usuario" id="user-menu-button">
-					<svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="currentColor" class="bi bi-person-circle" viewBox="0 0 16 16">
-						<path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0"/>
-						<path fill-rule="evenodd" d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8m8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1"/>
-					</svg>
-				</button>
-			
-				<div id="user-menu" class="user-menu">
-					<ul>
-						<li><a href="/perfil">Ver Perfil</a></li>
-						<li><a href="/logout">Cerrar Sesión</a></li>
-					</ul>
-				</div>
-			</div>
-		 
-			 <script>
-				 document.addEventListener("DOMContentLoaded", function () {
-					 const userButton = document.getElementById("user-menu-button");
-					 const userMenu = document.getElementById("user-menu");
-		 
-					 // Mostrar/Ocultar menú al hacer clic en el botón
-					 userButton.addEventListener("click", function (event) {
-						 event.stopPropagation();
-						 userMenu.style.display = userMenu.style.display === "block" ? "none" : "block";
-					 });
-		 
-					 // Cerrar menú si se hace clic fuera de él
-					 document.addEventListener("click", function (event) {
-						 if (!userMenu.contains(event.target) && !userButton.contains(event.target)) {
-							 userMenu.style.display = "none";
-						 }
-					 });
-				 });
-			 </script>
+        button {
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            transition: 0.3s;
+        }
 
+        button:hover {
+            background-color: #0056b3;
+        }
 
-			<div class="container-icon">
-				<svg
-					xmlns="http://www.w3.org/2000/svg"
-					fill="none"
-					viewBox="0 0 24 24"
-					stroke-width="1.5"
-					stroke="currentColor"
-					class="icon-cart"
-				>
-					<path
-						stroke-linecap="round"
-						stroke-linejoin="round"
-						d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007zM8.625 10.5a.375.375 0 11-.75 0 .375.375 0 01.75 0zm7.5 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z"
-					/>
-				</svg>
-				<div class="count-products">
-					<span id="contador-productos">0</span>
-				</div>
+        /* Sección de productos */
+        .productos-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+            padding: 20px;
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
 
-				<div class="container-cart-products hidden-cart">
-					<div class="cart-product">
-						<div class="info-cart-product">
-                            <span class="cantidad-producto-carrito">1</span>
-                            <p class="titulo-producto-carrito">Zapatos Nike</p>
-                            <span class="precio-producto-carrito">$80</span>
-                        </div>
-						<svg
-							xmlns="http://www.w3.org/2000/svg"
-							fill="none"
-							viewBox="0 0 24 24"
-							stroke-width="1.5"
-							stroke="currentColor"
-							class="icon-close"
-						>
-							<path
-								stroke-linecap="round"
-								stroke-linejoin="round"
-								d="M6 18L18 6M6 6l12 12"
-							/>
-						</svg>
-					</div>
-                    <div class="cart-total">
-                        <h3>Total:</h3>
-                        <span class="total-pagar">$200</span>
+        .producto-card {
+            background: white;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+            box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
+            width: 200px;
+        }
+
+        /* Menú de usuario */
+        .user-container {
+            position: relative;
+            display: inline-block;
+        }
+
+        .user-menu {
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: white;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            width: 150px;
+            display: none;
+            z-index: 1000;
+        }
+
+        .user-menu ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .user-menu ul li {
+            padding: 10px;
+            cursor: pointer;
+        }
+
+        .user-menu ul li a {
+            text-decoration: none;
+            color: black;
+            display: block;
+        }
+
+        .user-menu ul li:hover {
+            background: #f0f0f0;
+        }
+
+        /* Carrito de compras */
+        .container-icon {
+            position: relative;
+        }
+
+        .icon-cart {
+            width: 30px;
+            height: 30px;
+        }
+
+        .count-products {
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            background-color: red;
+            color: white;
+            border-radius: 50%;
+            padding: 2px 6px;
+            font-size: 12px;
+        }
+
+        .container-cart-products {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: white;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 10px;
+            display: none;
+            z-index: 1000;
+        }
+
+        .cart-product {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .info-cart-product {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .icon-close {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+
+        .cart-total {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Bienvenid@ {{ nombre }}, a la Bodega Del Deporte</h1>
+    </header>
+
+    <!-- Sección de categorías y marcas -->
+    <div class="main-container">
+        <div class="categorias-marcas-container">
+            {% for categoria, marcas in categorias.items() %}
+                <div class="categoria">
+                    <h3>{{ categoria }}</h3>
+                    <div class="marcas-grid">
+                        {% for marca in marcas %}
+                            <div class="marca-card">{{ marca }}</div>
+                        {% endfor %}
                     </div>
-				</div>
-			</div>
-		</header>
-		
+                </div>
+            {% endfor %}
+        </div>
 
-        <script src="{{ url_for('static', filename='categoria/categoria_mujer.js') }}"></script>
+        <!-- Filtro de categorías y marcas -->
+        <div class="filtro-container">
+            <select id="categoria">
+                <option value="">Selecciona una categoría</option>
+                {% for categoria in categorias.keys() %}
+                    <option value="{{ categoria }}">{{ categoria }}</option>
+                {% endfor %}
+            </select>
 
-		
-		<script>
-			
-			// Función para cerrar la sesión del usuario por inactividad.
-			
-			let inactivityTime = function () {
-				let time;
-				window.onload = resetTimer;
-				document.onmousemove = resetTimer;
-				document.onkeypress = resetTimer;
+            <select id="marca">
+                <option value="">Selecciona una marca</option>
+            </select>
 
-				function logout() {
-					alert("Tu sesión ha sido cerrada por inactividad.");
-					window.location.href = "{{ url_for('logout') }}";
-				}
+            <button onclick="filtrarProductos()">Filtrar</button>
+        </div>
 
-				function resetTimer() {
-					clearTimeout(time);
-					time = setTimeout(logout, 60000); // 30000 ms = 30 segundos, // 180000 ms = 3 minutos
-				}
-			};
+        <!-- Sección de productos -->
+        <div class="productos-container" id="productos">
+            {% for producto in productos %}
+                <div class="producto-card" data-categoria="{{ producto.categoria }}" data-marca="{{ producto.marca }}">
+                    <h3>{{ producto.nombre }}</h3>
+                    <p>Marca: {{ producto.marca }}</p>
+                    <p>Precio: ${{ producto.precio }}</p>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
 
-			inactivityTime();
-		</script>
+    <!-- Menú de usuario y carrito de compras (se mantienen igual) -->
+    <div class="user-container">
+        <button class="icon-user" aria-label="Abrir menú de usuario" id="user-menu-button">
+            <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="currentColor" class="bi bi-person-circle" viewBox="0 0 16 16">
+                <path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0"/>
+                <path fill-rule="evenodd" d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8m8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1"/>
+            </svg>
+        </button>
 
+        <div id="user-menu" class="user-menu">
+            <ul>
+                <li><a href="/perfil">Ver Perfil</a></li>
+                <li><a href="/logout">Cerrar Sesión</a></li>
+            </ul>
+        </div>
+    </div>
 
-	</body>
+    <div class="container-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="icon-cart">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007zM8.625 10.5a.375.375 0 11-.75 0 .375.375 0 01.75 0zm7.5 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z"/>
+        </svg>
+        <div class="count-products">
+            <span id="contador-productos">0</span>
+        </div>
 
-	<h2>Categorías y Marcas</h2>
-	<div class="categorias-container">
-		{% for categoria, marcas in categorias.items() %}
-			<div class="categoria">
-				<h3>{{ categoria }}</h3>
-				<div class="marcas-grid">
-					{% for marca in marcas %}
-						<div class="marca-card">{{ marca }}</div>
-					{% endfor %}
-				</div>
-			</div>
-		{% endfor %}
-	</div>
+        <div class="container-cart-products hidden-cart">
+            <div class="cart-product">
+                <div class="info-cart-product">
+                    <span class="cantidad-producto-carrito">1</span>
+                    <p class="titulo-producto-carrito">Zapatos Nike</p>
+                    <span class="precio-producto-carrito">$80</span>
+                </div>
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="icon-close">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </div>
+            <div class="cart-total">
+                <h3>Total:</h3>
+                <span class="total-pagar">$200</span>
+            </div>
+        </div>
+    </div>
 
+    <script>
+        // JavaScript para el filtrado de productos
+        document.addEventListener("DOMContentLoaded", function () {
+            const categoriaSelect = document.getElementById("categoria");
+            const marcaSelect = document.getElementById("marca");
+            const productosContainer = document.getElementById("productos");
+
+            // Rellenar marcas cuando se selecciona una categoría
+            categoriaSelect.addEventListener("change", function () {
+                const categoriaSeleccionada = this.value;
+                marcaSelect.innerHTML = '<option value="">Selecciona una marca</option>';
+
+                if (categoriaSeleccionada) {
+                    fetch(`/get_marcas?categoria=${categoriaSeleccionada}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            console.log("Marcas recibidas:", data.marcas);  // Depuración
+                            data.marcas.forEach(marca => {
+                                const option = document.createElement("option");
+                                option.value = marca;
+                                option.textContent = marca;
+                                marcaSelect.appendChild(option);
+                            });
+                        })
+                        .catch(error => {
+                            console.error("Error al obtener marcas:", error);
+                        });
+                }
+            });
+
+            // Función para filtrar productos
+            window.filtrarProductos = function () {
+                const categoriaSeleccionada = categoriaSelect.value;
+                const marcaSeleccionada = marcaSelect.value;
+
+                console.log("Filtrando productos...");  // Depuración
+                console.log("Categoría seleccionada:", categoriaSeleccionada);  // Depuración
+                console.log("Marca seleccionada:", marcaSeleccionada);  // Depuración
+
+                fetch(`/filtrar_productos?categoria=${categoriaSeleccionada}&marca=${marcaSeleccionada}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        console.log("Productos recibidos:", data.productos);  // Depuración
+                        productosContainer.innerHTML = ""; // Limpiar los productos actuales
+
+                        if (data.productos && data.productos.length > 0) {
+                            data.productos.forEach(producto => {
+                                const productoCard = document.createElement("div");
+                                productoCard.className = "producto-card";
+                                productoCard.innerHTML = `
+                                    <h3>${producto.nombre}</h3>
+                                    <p>Marca: ${producto.marca}</p>
+                                    <p>Precio: $${producto.precio}</p>
+                                `;
+                                console.log("Producto creado:", productoCard);  // Depuración
+                                productosContainer.appendChild(productoCard);
+                            });
+                        } else {
+                            productosContainer.innerHTML = "<p>No se encontraron productos.</p>";
+                        }
+                    })
+                    .catch(error => {
+                        console.error("Error al filtrar productos:", error);
+                        productosContainer.innerHTML = "<p>Error al cargar los productos.</p>";
+                    });
+            };
+        });
+
+        // JavaScript para el menú de usuario
+        document.addEventListener("DOMContentLoaded", function () {
+            const userButton = document.getElementById("user-menu-button");
+            const userMenu = document.getElementById("user-menu");
+
+            // Mostrar/Ocultar menú al hacer clic en el botón
+            userButton.addEventListener("click", function (event) {
+                event.stopPropagation();
+                userMenu.style.display = userMenu.style.display === "block" ? "none" : "block";
+            });
+
+            // Cerrar menú si se hace clic fuera de él
+            document.addEventListener("click", function (event) {
+                if (!userMenu.contains(event.target) && !userButton.contains(event.target)) {
+                    userMenu.style.display = "none";
+                }
+            });
+        });
+
+        // JavaScript para el carrito de compras
+        document.addEventListener("DOMContentLoaded", function () {
+            const cartIcon = document.querySelector(".icon-cart");
+            const cartContainer = document.querySelector(".container-cart-products");
+
+            cartIcon.addEventListener("click", function () {
+                cartContainer.style.display = cartContainer.style.display === "block" ? "none" : "block";
+            });
+        });
+
+        // Función para cerrar la sesión por inactividad
+        let inactivityTime = function () {
+            let time;
+            window.onload = resetTimer;
+            document.onmousemove = resetTimer;
+            document.onkeypress = resetTimer;
+
+            function logout() {
+                alert("Tu sesión ha sido cerrada por inactividad.");
+                window.location.href = "{{ url_for('logout') }}";
+            }
+
+            function resetTimer() {
+                clearTimeout(time);
+                time = setTimeout(logout, 60000); // 1 minuto de inactividad
+            }
+        };
+
+        inactivityTime();
+    </script>
+</body>
 </html>
-
