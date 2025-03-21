@@ -36,8 +36,16 @@ class Usuario(db.Model):
 class Producto(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     nombre = db.Column(db.String(100), nullable=False)
+    descripcion = db.Column(db.Text)
     precio = db.Column(db.Float, nullable=False)
+    stock = db.Column(db.Integer, nullable=False)
+    imagen = db.Column(db.String(255))
+    categoria_id = db.Column(db.Integer, db.ForeignKey('categoria.id'), nullable=False)  # Nueva columna
+    marca_id = db.Column(db.Integer, db.ForeignKey('marca.id'), nullable=False)          # Nueva columna
 
+    # Relaciones
+    categoria = db.relationship('Categoria', backref=db.backref('productos', lazy=True))
+    marca = db.relationship('Marca', backref=db.backref('productos', lazy=True))
 
 # Tabla intermedia para la relación muchos a muchos entre Categoria y Marca
 categoria_marca = db.Table('categoria_marca',
@@ -399,6 +407,53 @@ def crear_producto():
     
     flash('Producto creado con éxito', 'success')
     return redirect(url_for('categorias_admin'))
+
+@app.route('/get_marcas')
+def get_marcas():
+    categoria = request.args.get('categoria')  # Obtener la categoría desde la URL
+
+    # Obtener las marcas asociadas a la categoría desde la base de datos
+    categoria_obj = Categoria.query.filter_by(nombre=categoria).first()
+    if categoria_obj:
+        marcas = [marca.nombre for marca in categoria_obj.marcas]
+    else:
+        marcas = []
+
+    return jsonify({"marcas": marcas})  # Devolver las marcas en formato JSON
+
+@app.route('/filtrar_productos')
+def filtrar_productos():
+    categoria_nombre = request.args.get('categoria')
+    marca_nombre = request.args.get('marca')
+
+    # Obtener la categoría y marca por su nombre
+    categoria = Categoria.query.filter_by(nombre=categoria_nombre).first()
+    marca = Marca.query.filter_by(nombre=marca_nombre).first()
+
+    # Consulta inicial con join explícito
+    query = Producto.query.join(Categoria).join(Marca)
+
+    if categoria:
+        query = query.filter(Producto.categoria_id == categoria.id)
+    if marca:
+        query = query.filter(Producto.marca_id == marca.id)
+
+    productos = query.all()
+
+    # Verificar qué se obtiene en la base de datos
+    for producto in productos:
+        print(f"Producto: {producto.nombre}, Categoría: {producto.categoria.nombre if producto.categoria else 'None'}, Marca: {producto.marca.nombre if producto.marca else 'None'}")
+
+    # Convertir los productos a JSON
+    productos_json = [{
+        "id": producto.id,
+        "nombre": producto.nombre,
+        "precio": producto.precio,
+        "categoria": producto.categoria.nombre if producto.categoria else "Sin categoría",
+        "marca": producto.marca.nombre if producto.marca else "Sin marca"
+    } for producto in productos]
+
+    return jsonify({"productos": productos_json})
 
 
 
