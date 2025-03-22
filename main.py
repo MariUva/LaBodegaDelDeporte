@@ -409,6 +409,19 @@ def crear_producto():
     flash('Producto creado con éxito', 'success')
     return redirect(url_for('categorias_admin'))
 
+
+@app.route('/get_productos', methods=['GET'])
+def obtener_productos():
+    categoria = request.args.get('categoria')  # Captura la categoría desde el frontend
+    query = Producto.query
+
+    if categoria:  # Si se envió una categoría, filtrar por ella
+        query = query.filter_by(categoria=categoria)
+
+    productos = query.all()
+    return jsonify([p.to_dict() for p in productos])  # Retorna los productos en JSON
+
+
 @app.route('/get_marcas')
 def get_marcas():
     categoria = request.args.get('categoria')  # Obtener la categoría desde la URL
@@ -465,20 +478,34 @@ def ver_carrito():
 @app.route('/agregar_al_carrito', methods=['POST'])
 def agregar_al_carrito():
     producto_id = request.form.get('producto_id')
-    
+    nombre = request.form.get('nombre')
+    precio = float(request.form.get('precio'))
+
     if 'carrito' not in session:
         session['carrito'] = []  # Inicializar el carrito si no existe
-    
-    session['carrito'].append(producto_id)  # Agregar producto al carrito
-    session.modified = True  # Asegurar que se guarde la sesión
-    
-    return redirect(url_for('ver_carrito'))
 
-paypalrestsdk.configure({
-    "mode": os.getenv("PAYPAL_MODE", "sandbox"),  # "sandbox" o "live"
-    "client_id": os.getenv("PAYPAL_CLIENT_ID"),
-    "client_secret": os.getenv("PAYPAL_SECRET")
-})
+    # Convertimos la sesión en una lista modificable
+    carrito = session['carrito']
+
+    # Buscar si el producto ya está en el carrito
+    for producto in carrito:
+        if producto['id'] == producto_id:
+            producto['cantidad'] += 1
+            break
+    else:
+        carrito.append({
+            'id': producto_id,
+            'nombre': nombre,
+            'precio': precio,
+            'cantidad': 1
+        })
+
+    session['carrito'] = carrito
+    session.modified = True  # Asegurar que se guarde la sesión
+
+    print("Carrito actualizado:", session['carrito'])  # 🛠️ Verifica en la terminal
+
+    return redirect(url_for('ver_carrito'))
 
 
 @app.route("/pay", methods=["POST"])
@@ -512,6 +539,12 @@ def execute_payment():
         return jsonify({"status": "success"})
     else:
         return jsonify({"error": payment.error}), 400
+
+@app.route('/pago')
+def pago():
+    carrito = session.get('carrito', [])
+    total = sum(producto['precio'] * producto['cantidad'] for producto in carrito)
+    return render_template('pago.html', carrito=carrito, total=total)
 
 
 # ========================== EJECUCIÓN ==========================

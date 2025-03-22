@@ -204,6 +204,7 @@
         }
 
         .container-cart-products {
+            display: none; /* Ocultar inicialmente */
             position: absolute;
             top: 100%;
             right: 0;
@@ -212,7 +213,6 @@
             border-radius: 5px;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
             padding: 10px;
-            display: none;
             z-index: 1000;
             width: 300px;
         }
@@ -222,8 +222,8 @@
             justify-content: space-between;
             align-items: center;
             margin-bottom: 10px;
-            color: #333; /* Color de texto oscuro para mejor visibilidad */
-            font-size: 14px; /* Tamaño de fuente legible */
+            color: #333;
+            font-size: 14px;
         }
 
         .info-cart-product {
@@ -233,12 +233,12 @@
         }
 
         .titulo-producto-carrito {
-            margin: 0; /* Eliminar márgenes innecesarios */
-            font-weight: bold; /* Hacer el nombre del producto más destacado */
+            margin: 0;
+            font-weight: bold;
         }
 
         .precio-producto-carrito {
-            color: #007BFF; /* Color azul para el precio */
+            color: #007BFF;
             font-weight: bold;
         }
 
@@ -246,7 +246,7 @@
             width: 20px;
             height: 20px;
             cursor: pointer;
-            fill: #ff0000; /* Color rojo para el ícono de cerrar */
+            fill: #ff0000;
         }
 
         .cart-total {
@@ -254,6 +254,7 @@
             justify-content: space-between;
             align-items: center;
             margin-top: 10px;
+            color: #007BFF;
         }
 
         .btn-pagar {
@@ -308,12 +309,12 @@
             
                 <!-- Sección del total a pagar -->
                 <div class="cart-total">
-                    <h3>Total:</h3>
+                    <h3>Total de los productos:</h3>
                     <span class="total-pagar">$0</span>
                 </div>
             
                 <!-- Botón para proceder al pago -->
-                <button id="btn-pagar" class="btn-pagar">Ir a pagar</button>
+                <button id="btn-pagar" data-url="{{ url_for('pago') }}">Ir a pagar</button>
             </div>
         </div>
     </header>
@@ -476,12 +477,15 @@
         });
 
         // JavaScript para el carrito de compras
+        let carrito = JSON.parse(localStorage.getItem("carrito")) || [];
+
+
         document.addEventListener("DOMContentLoaded", function () {
-            const cartIcon = document.querySelector(".icon-cart");
+            const cartIcon = document.querySelector(".container-icon");
             const cartContainer = document.querySelector(".container-cart-products");
 
             cartIcon.addEventListener("click", function (event) {
-                event.stopPropagation(); // Evita que el clic se propague y cierre el carrito inmediatamente
+                event.stopPropagation(); // Evita que el clic se propague
                 cartContainer.style.display = cartContainer.style.display === "block" ? "none" : "block";
             });
 
@@ -493,11 +497,11 @@
             });
         });
 
-        let carrito = [];
-
         document.addEventListener("DOMContentLoaded", function () {
             const productosContainer = document.getElementById("productos");
 
+            
+            
             // Evento para agregar productos al carrito
             productosContainer.addEventListener("click", function (event) {
                 if (event.target.classList.contains("add-to-cart")) {
@@ -513,6 +517,9 @@
                         carrito.push({ id: productoId, nombre: productoNombre, precio: productoPrecio, cantidad: 1 });
                     }
 
+                    // Guardar el carrito en el localStorage
+                    localStorage.setItem("carrito", JSON.stringify(carrito));
+
                     // Mostrar mensaje de éxito
                     const mensajeExito = document.getElementById("mensaje-exito");
                     mensajeExito.style.display = "block";
@@ -523,35 +530,48 @@
                     actualizarCarrito();
                 }
             });
+
+            // Actualizar el carrito al cargar la página
+            actualizarCarrito();
         });
 
         function actualizarCarrito() {
-            let carritoContainer = document.querySelector(".container-cart-products");
+            let cartItems = document.getElementById("cart-items");
             let contadorProductos = document.getElementById("contador-productos");
             let totalPagar = document.querySelector(".total-pagar");
 
-            carritoContainer.innerHTML = ""; // Limpiar el carrito
+            cartItems.innerHTML = ""; // Limpiar los productos en el carrito
 
             let total = 0;
             let cantidadTotal = 0;
 
-            carrito.forEach(producto => {
-                let div = document.createElement("div");
-                div.classList.add("cart-product");
-                div.innerHTML = `
-                    <div class="info-cart-product">
-                        <span class="cantidad-producto-carrito">${producto.cantidad}</span>
-                        <p class="titulo-producto-carrito">${producto.nombre}</p>
-                        <span class="precio-producto-carrito">$${(producto.precio * producto.cantidad).toFixed(2)}</span>
-                    </div>
-                    <button onclick="eliminarDelCarrito('${producto.id}')">X</button>
+            if (carrito.length === 0) {
+                // Si el carrito está vacío, mostramos el mensaje
+                cartItems.innerHTML = `
+                    <p style="text-align: center; color: #666; font-size: 14px;">
+                        ¡Ups! Aún no has agregado nada al carrito de compras. Sigue explorando...
+                    </p>
                 `;
+            } else {
+                carrito.forEach(producto => {
+                    let div = document.createElement("div");
+                    div.classList.add("cart-product");
+                    div.innerHTML = `
+                        <div class="info-cart-product">
+                            <span class="cantidad-producto-carrito">${producto.cantidad}</span>
+                            <p class="titulo-producto-carrito">${producto.nombre}</p>
+                            <span class="precio-producto-carrito">$${(producto.precio * producto.cantidad).toFixed(2)}</span>
+                        </div>
+                        <button onclick="eliminarDelCarrito('${producto.id}')">X</button>
+                    `;
 
-                carritoContainer.appendChild(div);
-                total += producto.precio * producto.cantidad;
-                cantidadTotal += producto.cantidad;
-            });
+                    cartItems.appendChild(div);
+                    total += producto.precio * producto.cantidad;
+                    cantidadTotal += producto.cantidad;
+                });
+            }
 
+            // Actualizar contador y total
             contadorProductos.textContent = cantidadTotal;
             totalPagar.textContent = `$${total.toFixed(2)}`;
         }
@@ -569,6 +589,9 @@
                     carrito = carrito.filter(p => p.id !== id);
                 }
 
+                // Guardar el carrito actualizado en el localStorage
+                localStorage.setItem("carrito", JSON.stringify(carrito));
+
                 // Mostrar mensaje de éxito
                 const mensajeEliminado = document.getElementById("mensaje-eliminado");
                 mensajeEliminado.style.display = "block";
@@ -580,6 +603,15 @@
                 actualizarCarrito();
             }
         }
+
+        // Redirigir a la página de pago
+        document.getElementById("btn-pagar").addEventListener("click", function () {
+            if (carrito.length === 0) {
+                alert("El carrito está vacío. Agrega productos antes de pagar.");
+            } else {
+                window.location.href = this.dataset.url;
+            }
+        });
 
         // Función para cerrar la sesión por inactividad
         let inactivityTime = function () {
@@ -600,8 +632,19 @@
         };
 
         inactivityTime();
-    </script>
 
+        // Redirigir a la página de pago
+        document.getElementById("btn-pagar").addEventListener("click", function () {
+            const carrito = JSON.parse(localStorage.getItem("carrito")) || [];
+            if (carrito.length === 0) {
+                alert("El carrito está vacío. Agrega productos antes de pagar.");
+            } else {
+                window.location.href = this.dataset.url;
+            }
+        });
+
+
+    </script>
     <!-- SDK de PayPal -->
     <script src="https://www.paypal.com/sdk/js?client-id=TUSANDBOX_CLIENT_ID"></script>
 </body>
