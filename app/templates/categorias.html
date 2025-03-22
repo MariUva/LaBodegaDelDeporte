@@ -21,6 +21,10 @@
             color: white;
             padding: 15px;
             font-size: 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
         }
 
         /* Contenedor principal */
@@ -179,11 +183,13 @@
         /* Carrito de compras */
         .container-icon {
             position: relative;
+            cursor: pointer;
         }
 
         .icon-cart {
             width: 30px;
             height: 30px;
+            fill: white;
         }
 
         .count-products {
@@ -208,6 +214,7 @@
             padding: 10px;
             display: none;
             z-index: 1000;
+            width: 300px;
         }
 
         .cart-product {
@@ -215,6 +222,8 @@
             justify-content: space-between;
             align-items: center;
             margin-bottom: 10px;
+            color: #333; /* Color de texto oscuro para mejor visibilidad */
+            font-size: 14px; /* Tamaño de fuente legible */
         }
 
         .info-cart-product {
@@ -223,10 +232,21 @@
             gap: 10px;
         }
 
+        .titulo-producto-carrito {
+            margin: 0; /* Eliminar márgenes innecesarios */
+            font-weight: bold; /* Hacer el nombre del producto más destacado */
+        }
+
+        .precio-producto-carrito {
+            color: #007BFF; /* Color azul para el precio */
+            font-weight: bold;
+        }
+
         .icon-close {
             width: 20px;
             height: 20px;
             cursor: pointer;
+            fill: #ff0000; /* Color rojo para el ícono de cerrar */
         }
 
         .cart-total {
@@ -235,12 +255,73 @@
             align-items: center;
             margin-top: 10px;
         }
+
+        .btn-pagar {
+            width: 100%;
+            padding: 10px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        .btn-pagar:hover {
+            background-color: #0056b3;
+        }
     </style>
 </head>
 <body>
     <header>
         <h1>Bienvenid@ {{ nombre }}, a la Bodega Del Deporte</h1>
+        
+        <!-- Menú de usuario y carrito de compras -->
+        <div class="user-container">
+            <button class="icon-user" aria-label="Abrir menú de usuario" id="user-menu-button">
+                <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="currentColor" class="bi bi-person-circle" viewBox="0 0 16 16">
+                    <path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0"/>
+                    <path fill-rule="evenodd" d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8m8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1"/>
+                </svg>
+            </button>
+
+            <div id="user-menu" class="user-menu">
+                <ul>
+                    <li><a href="/perfil">Ver Perfil</a></li>
+                    <li><a href="/logout">Cerrar Sesión</a></li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Carrito de compras -->
+        <div class="container-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="icon-cart">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007zM8.625 10.5a.375.375 0 11-.75 0 .375.375 0 01.75 0zm7.5 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z"/>
+            </svg>
+            <div class="count-products">
+                <span id="contador-productos">0</span>
+            </div>
+
+            <div class="container-cart-products">
+                <!-- Contenedor de los productos en el carrito -->
+                <div id="cart-items"></div>
+            
+                <!-- Sección del total a pagar -->
+                <div class="cart-total">
+                    <h3>Total:</h3>
+                    <span class="total-pagar">$0</span>
+                </div>
+            
+                <!-- Botón para proceder al pago -->
+                <button id="btn-pagar" class="btn-pagar">Ir a pagar</button>
+            </div>
+        </div>
     </header>
+
+    <!-- Mensaje emergente de éxito -->
+    <div id="mensaje-exito" style="display: none; position: fixed; top: 20px; right: 20px; background-color: #4CAF50; color: white; padding: 15px; border-radius: 5px; z-index: 1000;">
+        ¡Producto agregado al carrito con éxito!
+    </div>
 
     <!-- Sección de categorías y marcas -->
     <div class="main-container">
@@ -276,125 +357,15 @@
         <!-- Sección de productos -->
         <div class="productos-container" id="productos">
             {% for producto in productos %}
-				<div class="producto-card" data-categoria="{{ producto.categoria }}" data-marca="{{ producto.marca }}">
-					<h3>{{ producto.nombre }}</h3>
-					<p>Marca: {{ producto.marca }}</p>
-					<p>Precio: ${{ producto.precio }}</p>
-					<button class="add-to-cart" data-id="{{ producto.id }}" data-nombre="{{ producto.nombre }}" data-precio="{{ producto.precio }}">Añadir al carrito</button>
-					<div id="paypal-button-container-{{ producto.id }}"></div>
-				</div>
-			
+                <div class="producto-card" data-categoria="{{ producto.categoria }}" data-marca="{{ producto.marca }}">
+                    <h3>{{ producto.nombre }}</h3>
+                    <p>Marca: {{ producto.marca }}</p>
+                    <p>Precio: ${{ producto.precio }}</p>
+                    <button class="add-to-cart" data-id="{{ producto.id }}" data-nombre="{{ producto.nombre }}" data-precio="{{ producto.precio }}">Añadir al carrito</button>
+                    <div id="paypal-button-container-{{ producto.id }}"></div>
+                </div>
             {% endfor %}
         </div>
-    </div>
-
-    <!-- Menú de usuario y carrito de compras (se mantienen igual) -->
-    <div class="user-container">
-        <button class="icon-user" aria-label="Abrir menú de usuario" id="user-menu-button">
-            <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="currentColor" class="bi bi-person-circle" viewBox="0 0 16 16">
-                <path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0"/>
-                <path fill-rule="evenodd" d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8m8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1"/>
-            </svg>
-        </button>
-
-        <div id="user-menu" class="user-menu">
-            <ul>
-                <li><a href="/perfil">Ver Perfil</a></li>
-                <li><a href="/logout">Cerrar Sesión</a></li>
-            </ul>
-        </div>
-    </div>
-
-    <div class="container-icon">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="icon-cart">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007zM8.625 10.5a.375.375 0 11-.75 0 .375.375 0 01.75 0zm7.5 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z"/>
-        </svg>
-        <div class="count-products">
-            <span id="contador-productos">0</span>
-        </div>
-
-        <div class="container-cart-products hidden-cart">
-    
-			<!-- Contenedor de los productos en el carrito -->
-			<div id="cart-items">
-				<div class="cart-product">
-					<div class="info-cart-product">
-						<span class="cantidad-producto-carrito">1</span>
-						<p class="titulo-producto-carrito">Zapatos Nike</p>
-						<span class="precio-producto-carrito">$80</span>
-					</div>
-					<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="icon-close remove-item">
-						<path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
-					</svg>
-				</div>
-			</div>
-		
-			<!-- Sección del total a pagar -->
-			<div class="cart-total">
-				<h3>Total:</h3>
-				<span class="total-pagar">$0</span>
-			</div>
-		
-			<!-- Botón para proceder al pago -->
-			<button id="btn-pagar" class="btn-pagar">Ir a pagar</button>
-		
-		</div>
-		
-		<div class="container-cart-products hidden-cart">
-    
-			<!-- Contenedor de los productos en el carrito -->
-			<div id="cart-items">
-				<div class="cart-product">
-					<div class="info-cart-product">
-						<span class="cantidad-producto-carrito">1</span>
-						<p class="titulo-producto-carrito">Zapatos Nike</p>
-						<span class="precio-producto-carrito">$80</span>
-					</div>
-					<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="icon-close remove-item">
-						<path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
-					</svg>
-				</div>
-			</div>
-		
-			<!-- Sección del total a pagar -->
-			<div class="cart-total">
-				<h3>Total:</h3>
-				<span class="total-pagar">$0</span>
-			</div>
-		
-			<!-- Botón para proceder al pago -->
-			<button id="btn-pagar" class="btn-pagar">Ir a pagar</button>
-		
-		</div>
-		
-		<script>
-			document.addEventListener("DOMContentLoaded", function () {
-		
-				function actualizarTotal() {
-					let total = 0;
-					document.querySelectorAll('.cart-product').forEach(producto => {
-						let precioTexto = producto.querySelector('.precio-producto-carrito').textContent;
-						let precio = parseFloat(precioTexto.replace('$', ''));
-						let cantidad = parseInt(producto.querySelector('.cantidad-producto-carrito').textContent);
-						total += precio * cantidad;
-					});
-					document.querySelector('.total-pagar').textContent = `$${total}`;
-				}
-		
-				// Usamos delegación de eventos para los botones de eliminar
-				document.getElementById('cart-items').addEventListener('click', function (event) {
-					if (event.target.classList.contains('remove-item')) {
-						event.target.closest('.cart-product').remove();
-						actualizarTotal();
-					}
-				});
-		
-				// Llamar a la función al inicio para asegurar que el total sea correcto
-				actualizarTotal();
-			});
-		</script>
-		
-		
     </div>
 
     <script>
@@ -429,56 +400,54 @@
 
             // Función para filtrar productos
             window.filtrarProductos = function () {
-				const categoriaSeleccionada = categoriaSelect.value;
-				const marcaSeleccionada = marcaSelect.value;
+                const categoriaSeleccionada = categoriaSelect.value;
+                const marcaSeleccionada = marcaSelect.value;
 
-				fetch(`/filtrar_productos?categoria=${categoriaSeleccionada}&marca=${marcaSeleccionada}`)
-					.then(response => response.json())
-					.then(data => {
-						productosContainer.innerHTML = ""; // Limpiar productos actuales
+                fetch(`/filtrar_productos?categoria=${categoriaSeleccionada}&marca=${marcaSeleccionada}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        productosContainer.innerHTML = ""; // Limpiar productos actuales
 
-						if (data.productos && data.productos.length > 0) {
-							data.productos.forEach(producto => {
-								const productoCard = document.createElement("div");
-								productoCard.className = "producto-card";
-								productoCard.dataset.categoria = producto.categoria;
-								productoCard.dataset.marca = producto.marca;
-								productoCard.innerHTML = `
-									<h3>${producto.nombre}</h3>
-									<p>Marca: ${producto.marca}</p>
-									<p>Precio: $${producto.precio}</p>
-									<button class="add-to-cart" data-id="${producto.id}" data-nombre="${producto.nombre}" data-precio="${producto.precio}">Añadir al carrito</button>
-									<div id="paypal-button-container-${producto.id}"></div>
-								`;
+                        if (data.productos && data.productos.length > 0) {
+                            data.productos.forEach(producto => {
+                                const productoCard = document.createElement("div");
+                                productoCard.className = "producto-card";
+                                productoCard.dataset.categoria = producto.categoria;
+                                productoCard.dataset.marca = producto.marca;
+                                productoCard.innerHTML = `
+                                    <h3>${producto.nombre}</h3>
+                                    <p>Marca: ${producto.marca}</p>
+                                    <p>Precio: $${producto.precio}</p>
+                                    <button class="add-to-cart" data-id="${producto.id}" data-nombre="${producto.nombre}" data-precio="${producto.precio}">Añadir al carrito</button>
+                                    <div id="paypal-button-container-${producto.id}"></div>
+                                `;
 
-								productosContainer.appendChild(productoCard);
+                                productosContainer.appendChild(productoCard);
 
-								// Renderizar botón de PayPal para cada producto
-								// Dentro de la función filtrarProductos, después de crear la tarjeta del producto:
-								paypal.Buttons({
-									createOrder: function (data, actions) {
-										return actions.order.create({
-											purchase_units: [{
-												amount: {
-													value: producto.precio // Precio del producto
-												}
-											}]
-										});
-									},
-									onApprove: function (data, actions) {
-										return actions.order.capture().then(function (details) {
-											alert('Pago completado por ' + details.payer.name.given_name);
-											// Aquí puedes agregar lógica adicional, como vaciar el carrito o redirigir al usuario
-										});
-									}
-								}).render(`#paypal-button-container-${producto.id}`);
-							});
-						} else {
-							productosContainer.innerHTML = "<p>No se encontraron productos</p>";
-						}
-					})
-					.catch(error => console.error("Error al obtener productos:", error));
-
+                                // Renderizar botón de PayPal para cada producto
+                                paypal.Buttons({
+                                    createOrder: function (data, actions) {
+                                        return actions.order.create({
+                                            purchase_units: [{
+                                                amount: {
+                                                    value: producto.precio // Precio del producto
+                                                }
+                                            }]
+                                        });
+                                    },
+                                    onApprove: function (data, actions) {
+                                        return actions.order.capture().then(function (details) {
+                                            alert('Pago completado por ' + details.payer.name.given_name);
+                                            // Aquí puedes agregar lógica adicional, como vaciar el carrito o redirigir al usuario
+                                        });
+                                    }
+                                }).render(`#paypal-button-container-${producto.id}`);
+                            });
+                        } else {
+                            productosContainer.innerHTML = "<p>No se encontraron productos</p>";
+                        }
+                    })
+                    .catch(error => console.error("Error al obtener productos:", error));
             };
         });
 
@@ -506,75 +475,86 @@
             const cartIcon = document.querySelector(".icon-cart");
             const cartContainer = document.querySelector(".container-cart-products");
 
-            cartIcon.addEventListener("click", function () {
+            cartIcon.addEventListener("click", function (event) {
+                event.stopPropagation(); // Evita que el clic se propague y cierre el carrito inmediatamente
                 cartContainer.style.display = cartContainer.style.display === "block" ? "none" : "block";
+            });
+
+            // Cerrar el carrito si se hace clic fuera de él
+            document.addEventListener("click", function (event) {
+                if (!cartContainer.contains(event.target) && !cartIcon.contains(event.target)) {
+                    cartContainer.style.display = "none";
+                }
             });
         });
 
-		
-		let carrito = [];
+        let carrito = [];
 
-		document.addEventListener("DOMContentLoaded", function () {
-			const productosContainer = document.getElementById("productos");
+        document.addEventListener("DOMContentLoaded", function () {
+            const productosContainer = document.getElementById("productos");
 
-			// Evento para agregar productos al carrito
-			productosContainer.addEventListener("click", function (event) {
-				if (event.target.classList.contains("add-to-cart")) {
-					const productoId = event.target.getAttribute("data-id");
-					const productoNombre = event.target.getAttribute("data-nombre");
-					const productoPrecio = parseFloat(event.target.getAttribute("data-precio"));
+            // Evento para agregar productos al carrito
+            productosContainer.addEventListener("click", function (event) {
+                if (event.target.classList.contains("add-to-cart")) {
+                    const productoId = event.target.getAttribute("data-id");
+                    const productoNombre = event.target.getAttribute("data-nombre");
+                    const productoPrecio = parseFloat(event.target.getAttribute("data-precio"));
 
-					// Agregar al carrito
-					let productoExistente = carrito.find(p => p.id === productoId);
-					if (productoExistente) {
-						productoExistente.cantidad++;
-					} else {
-						carrito.push({ id: productoId, nombre: productoNombre, precio: productoPrecio, cantidad: 1 });
-					}
+                    // Agregar al carrito
+                    let productoExistente = carrito.find(p => p.id === productoId);
+                    if (productoExistente) {
+                        productoExistente.cantidad++;
+                    } else {
+                        carrito.push({ id: productoId, nombre: productoNombre, precio: productoPrecio, cantidad: 1 });
+                    }
 
-					actualizarCarrito();
-				}
-			});
-		});
+                    // Mostrar mensaje de éxito
+                    const mensajeExito = document.getElementById("mensaje-exito");
+                    mensajeExito.style.display = "block";
+                    setTimeout(() => {
+                        mensajeExito.style.display = "none";
+                    }, 3000); // Ocultar el mensaje después de 3 segundos
 
-		function actualizarCarrito() {
-			let carritoContainer = document.querySelector(".container-cart-products");
-			let contadorProductos = document.getElementById("contador-productos");
-			let totalPagar = document.querySelector(".total-pagar");
+                    actualizarCarrito();
+                }
+            });
+        });
 
-			carritoContainer.innerHTML = ""; // Limpiar el carrito
+        function actualizarCarrito() {
+            let carritoContainer = document.querySelector(".container-cart-products");
+            let contadorProductos = document.getElementById("contador-productos");
+            let totalPagar = document.querySelector(".total-pagar");
 
-			let total = 0;
-			let cantidadTotal = 0;
+            carritoContainer.innerHTML = ""; // Limpiar el carrito
 
-			carrito.forEach(producto => {
-				let div = document.createElement("div");
-				div.classList.add("cart-product");
-				div.innerHTML = `
-					<div class="info-cart-product">
-						<span class="cantidad-producto-carrito">${producto.cantidad}</span>
-						<p class="titulo-producto-carrito">${producto.nombre}</p>
-						<span class="precio-producto-carrito">$${(producto.precio * producto.cantidad).toFixed(2)}</span>
-					</div>
-					<button onclick="eliminarDelCarrito('${producto.id}')">X</button>
-				`;
+            let total = 0;
+            let cantidadTotal = 0;
 
-				carritoContainer.appendChild(div);
-				total += producto.precio * producto.cantidad;
-				cantidadTotal += producto.cantidad;
-			});
+            carrito.forEach(producto => {
+                let div = document.createElement("div");
+                div.classList.add("cart-product");
+                div.innerHTML = `
+                    <div class="info-cart-product">
+                        <span class="cantidad-producto-carrito">${producto.cantidad}</span>
+                        <p class="titulo-producto-carrito">${producto.nombre}</p>
+                        <span class="precio-producto-carrito">$${(producto.precio * producto.cantidad).toFixed(2)}</span>
+                    </div>
+                    <button onclick="eliminarDelCarrito('${producto.id}')">X</button>
+                `;
 
-			contadorProductos.textContent = cantidadTotal;
-			totalPagar.textContent = `$${total.toFixed(2)}`;
-		}
+                carritoContainer.appendChild(div);
+                total += producto.precio * producto.cantidad;
+                cantidadTotal += producto.cantidad;
+            });
 
-		function eliminarDelCarrito(id) {
-			carrito = carrito.filter(p => p.id !== id);
-			actualizarCarrito();
-		}
+            contadorProductos.textContent = cantidadTotal;
+            totalPagar.textContent = `$${total.toFixed(2)}`;
+        }
 
-
-
+        function eliminarDelCarrito(id) {
+            carrito = carrito.filter(p => p.id !== id);
+            actualizarCarrito();
+        }
 
         // Función para cerrar la sesión por inactividad
         let inactivityTime = function () {
@@ -597,8 +577,7 @@
         inactivityTime();
     </script>
 
-	<!-- SDK de PayPal -->
-	<script src="https://www.paypal.com/sdk/js?client-id=TUSANDBOX_CLIENT_ID"></script>
-    
+    <!-- SDK de PayPal -->
+    <script src="https://www.paypal.com/sdk/js?client-id=TUSANDBOX_CLIENT_ID"></script>
 </body>
 </html>
