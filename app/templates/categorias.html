@@ -323,6 +323,11 @@
         ¡Producto agregado al carrito con éxito!
     </div>
 
+    <!-- Mensaje emergente de éxito para eliminar productos -->
+    <div id="mensaje-eliminado" style="display: none; position: fixed; top: 20px; right: 20px; background-color: #ff4444; color: white; padding: 15px; border-radius: 5px; z-index: 1000;">
+        ¡Producto eliminado del carrito con éxito!
+    </div>
+
     <!-- Sección de categorías y marcas -->
     <div class="main-container">
         <div class="categorias-marcas-container">
@@ -552,8 +557,28 @@
         }
 
         function eliminarDelCarrito(id) {
-            carrito = carrito.filter(p => p.id !== id);
-            actualizarCarrito();
+            // Buscar el producto en el carrito
+            const productoEnCarrito = carrito.find(p => p.id === id);
+
+            if (productoEnCarrito) {
+                // Reducir la cantidad en 1
+                productoEnCarrito.cantidad--;
+
+                // Si la cantidad llega a 0, eliminar el producto del carrito
+                if (productoEnCarrito.cantidad === 0) {
+                    carrito = carrito.filter(p => p.id !== id);
+                }
+
+                // Mostrar mensaje de éxito
+                const mensajeEliminado = document.getElementById("mensaje-eliminado");
+                mensajeEliminado.style.display = "block";
+                setTimeout(() => {
+                    mensajeEliminado.style.display = "none";
+                }, 3000); // Ocultar el mensaje después de 3 segundos
+
+                // Actualizar el carrito
+                actualizarCarrito();
+            }
         }
 
         // Función para cerrar la sesión por inactividad
