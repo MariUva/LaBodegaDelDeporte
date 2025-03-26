@@ -547,6 +547,12 @@ def pago():
     return render_template('pago.html', carrito=carrito, total=total)
 
 
+@app.route('/admin_inventario')
+def inventario():
+    productos = Producto.query.all()
+    return render_template('admin_inventario.html', productos=productos)
+
+
 # ========================== EJECUCIÓN ==========================
 if __name__ == "__main__":
     debug_mode = os.getenv("FLASK_DEBUG", "False").lower() == "true"
