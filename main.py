@@ -44,6 +44,21 @@ class Producto(db.Model):
     categoria_id = db.Column(db.Integer, db.ForeignKey('categoria.id'), nullable=False)  # Nueva columna
     marca_id = db.Column(db.Integer, db.ForeignKey('marca.id'), nullable=False)          # Nueva columna
 
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'nombre': self.nombre,
+            'descripcion': self.descripcion,
+            'precio': float(self.precio) if self.precio is not None else 0.0,
+            'stock': self.stock,
+            'imagen': self.imagen,
+            'categoria': self.categoria.to_dict() if self.categoria else None,
+            'categoria_id': self.categoria_id,
+            'marca': self.marca.to_dict() if self.marca else None,
+            'marca_id': self.marca_id
+        }    
+
+
     # Relaciones
     categoria = db.relationship('Categoria', backref=db.backref('productos', lazy=True))
     marca = db.relationship('Marca', backref=db.backref('productos', lazy=True))
@@ -59,9 +74,27 @@ class Categoria(db.Model):
     nombre = db.Column(db.String(100), nullable=False, unique=True)
     marcas = db.relationship('Marca', secondary=categoria_marca, backref=db.backref('categorias', lazy=True))
 
+    def to_dict(self, include_marcas=False):
+        data = {
+            'id': self.id,
+            'nombre': self.nombre
+        }
+        if include_marcas:
+            data['marcas'] = [m.to_dict() for m in self.marcas]
+        return data
+
 class Marca(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     nombre = db.Column(db.String(100), nullable=False)
+
+    def to_dict(self, include_categorias=False):
+        data = {
+            'id': self.id,
+            'nombre': self.nombre
+        }
+        if include_categorias:
+            data['categorias'] = [c.to_dict() for c in self.categorias]
+        return data
 
 
 # ========================== RUTAS ==========================
@@ -412,16 +445,40 @@ def crear_producto():
 
 @app.route('/get_productos', methods=['GET'])
 def obtener_productos():
-    categoria = request.args.get('categoria')  # Captura la categoría desde el frontend
-    query = Producto.query
-
-    if categoria:  # Si se envió una categoría, filtrar por ella
-        query = query.filter_by(categoria=categoria)
-
-    productos = query.all()
-    return jsonify([p.to_dict() for p in productos])  # Retorna los productos en JSON
-
-
+    try:
+        search_term = request.args.get('search', '').strip()
+        categoria_id = request.args.get('categoria_id', type=int)
+        marca_id = request.args.get('marca_id', type=int)
+        
+        query = db.session.query(Producto)
+        
+        # Filtros
+        if search_term:
+            query = query.filter(
+                db.or_(
+                    Producto.nombre.ilike(f'%{search_term}%'),
+                    Producto.descripcion.ilike(f'%{search_term}%'),
+                    Producto.marca.has(Marca.nombre.ilike(f'%{search_term}%')),
+                    Producto.categoria.has(Categoria.nombre.ilike(f'%{search_term}%'))
+                )
+            )
+        
+        if categoria_id:
+            query = query.filter_by(categoria_id=categoria_id)
+            
+        if marca_id:
+            query = query.filter_by(marca_id=marca_id)
+        
+        productos = query.all()
+        
+        # Usar el método to_dict() que hemos definido
+        productos_json = [p.to_dict() for p in productos]
+        return jsonify(productos_json)
+        
+    except Exception as e:
+        app.logger.error(f"Error al obtener productos: {str(e)}", exc_info=True)
+        return jsonify({'error': 'Error interno del servidor'}), 500
+    
 @app.route('/get_marcas')
 def get_marcas():
     categoria = request.args.get('categoria')  # Obtener la categoría desde la URL
