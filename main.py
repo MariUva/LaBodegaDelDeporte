@@ -13,6 +13,9 @@ app.config.from_object(Config)
 app.secret_key = "tu_clave_secreta"
 from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail
+import cloudinary
+import cloudinary.uploader
+import cloudinary.api
 
 # Configuración de SendGrid
 sg = SendGridAPIClient(os.getenv("SENDGRID_API_KEY"))
@@ -21,6 +24,13 @@ mail = Mail(app)
 
 # Inicializar la base de datos
 db = SQLAlchemy(app)
+
+# Configurar Cloudinary
+cloudinary.config(
+    cloud_name=os.getenv("CLOUDINARY_CLOUD_NAME"),
+    api_key=os.getenv("CLOUDINARY_API_KEY"),
+    api_secret=os.getenv("CLOUDINARY_API_SECRET")
+)
 
 
 # ========================== MODELOS ==========================
@@ -430,19 +440,45 @@ def ver_usuarios():
 
 @app.route('/crear_producto', methods=['POST'])
 def crear_producto():
-    nombre = request.form.get('nombre')
-    precio = request.form.get('precio')
-    categoria = request.form.get('categoria')
-    stock = request.form.get('stock')
+    try:
+        # Verificar si el contenido es multipart/form-data
+        if 'multipart/form-data' not in request.content_type:
+            return jsonify({'success': False, 'error': 'El contenido debe ser multipart/form-data'}), 400
 
-    nuevo_producto = Producto(nombre=nombre, precio=precio, categoria=categoria, stock=stock)
-    db.session.add(nuevo_producto)
-    db.session.commit()
+        nombre = request.form.get('nombre')
+        descripcion = request.form.get('descripcion')
+        precio = request.form.get('precio')
+        stock = request.form.get('stock')
+        categoria_id = request.form.get('categoria_id')
+        marca_id = request.form.get('marca_id')
+        imagen = request.files.get('imagen')
+
+        # Crear el nuevo producto
+        nuevo_producto = Producto(
+            nombre=nombre,
+            descripcion=descripcion,
+            precio=precio,
+            stock=stock,
+            categoria_id=categoria_id,
+            marca_id=marca_id
+        )
+
+        # Si hay una imagen, subirla a Cloudinary
+        if imagen:
+            upload_result = cloudinary.uploader.upload(imagen, folder=f"productos/{nuevo_producto.id}")
+            nuevo_producto.imagen = upload_result.get("secure_url")
+
+        # Guardar el producto en la base de datos
+        db.session.add(nuevo_producto)
+        db.session.commit()
+
+        flash('Producto creado con éxito', 'success')
+        return redirect(url_for('categorias_admin'))
+
+    except Exception as e:
+        app.logger.error(f"Error al crear el producto: {str(e)}", exc_info=True)
+        return jsonify({'success': False, 'error': 'Error interno del servidor'}), 500
     
-    flash('Producto creado con éxito', 'success')
-    return redirect(url_for('categorias_admin'))
-
-
 @app.route('/get_productos', methods=['GET'])
 def obtener_productos():
     try:
@@ -478,19 +514,43 @@ def obtener_productos():
     except Exception as e:
         app.logger.error(f"Error al obtener productos: {str(e)}", exc_info=True)
         return jsonify({'error': 'Error interno del servidor'}), 500
+
+@app.route('/delete_producto/<int:product_id>', methods=['POST'])
+def delete_producto(product_id):
+    """
+    Elimina un producto de la base de datos y, si tiene imagen, también la borra de Cloudinary.
+    """
+    try:
+        producto = Producto.query.get(product_id)
+        
+        if not producto:
+            return jsonify({"success": False, "error": "Producto no encontrado"}), 404
+
+        # Si el producto tiene una imagen, eliminarla de Cloudinary
+        if producto.imagen:
+            try:
+                public_id = producto.imagen.split("/")[-1].split(".")[0]
+                cloudinary.uploader.destroy(public_id)
+            except Exception as e:
+                app.logger.error(f"Error al eliminar imagen de Cloudinary: {str(e)}")
+
+        # Eliminar el producto de la base de datos
+        db.session.delete(producto)
+        db.session.commit()
+
+        return jsonify({"success": True, "message": "Producto eliminado correctamente"})
+
+    except Exception as e:
+        app.logger.error(f"Error al eliminar producto: {str(e)}", exc_info=True)
+        return jsonify({"success": False, "error": "Error interno del servidor"}), 500
+
+
+@app.route('/get_marcas/<int:categoria_id>')
+def get_marcas(categoria_id):
+    categoria_obj = Categoria.query.get(categoria_id)
+    marcas = categoria_obj.marcas if categoria_obj else []
     
-@app.route('/get_marcas')
-def get_marcas():
-    categoria = request.args.get('categoria')  # Obtener la categoría desde la URL
-
-    # Obtener las marcas asociadas a la categoría desde la base de datos
-    categoria_obj = Categoria.query.filter_by(nombre=categoria).first()
-    if categoria_obj:
-        marcas = [marca.nombre for marca in categoria_obj.marcas]
-    else:
-        marcas = []
-
-    return jsonify({"marcas": marcas})  # Devolver las marcas en formato JSON
+    return render_template('marcas_dropdown.html', marcas=marcas)
 
 @app.route('/filtrar_productos')
 def filtrar_productos():

@@ -31,6 +31,11 @@ class Config:
     # Configuración de SendGrid
     SENDGRID_API_KEY = os.getenv("SENDGRID_API_KEY")
     MAIL_DEFAULT_SENDER = os.getenv("MAIL_DEFAULT_SENDER", "juanm.londonom@uqvirtual.edu.co")
+
+    # Configuración de Cloudinary (para subir imágenes)
+    CLOUDINARY_CLOUD_NAME = os.getenv("CLOUDINARY_CLOUD_NAME")
+    CLOUDINARY_API_KEY = os.getenv("CLOUDINARY_API_KEY")
+    CLOUDINARY_API_SECRET = os.getenv("CLOUDINARY_API_SECRET")
     
     # Otras configuraciones opcionales
     DEBUG = os.getenv("FLASK_DEBUG", "false").lower() == "true"
