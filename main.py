@@ -658,7 +658,10 @@ def filtrar_productos():
     productos_json = [{
         "id": producto.id,
         "nombre": producto.nombre,
+        "descripcion": producto.descripcion,
         "precio": producto.precio,
+        "stock": producto.stock,
+        "imagen": producto.imagen,  # Incluir la URL de la imagen
         "categoria": producto.categoria.nombre if producto.categoria else "Sin categoría",
         "marca": producto.marca.nombre if producto.marca else "Sin marca"
     } for producto in productos]
