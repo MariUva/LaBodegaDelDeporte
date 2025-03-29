@@ -197,7 +197,15 @@
             color: #2c3e50;
             margin-bottom: 0.5rem;
         }
-        
+
+        .producto-imagen {
+            width: 100%;
+            height: auto;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            object-fit: cover;
+         }
+            
         .producto-card p {
             color: #555;
             margin-bottom: 0.5rem;
@@ -527,6 +535,7 @@
             <div class="productos-container" id="productos">
                 {% for producto in productos %}
                     <div class="producto-card" data-categoria="{{ producto.categoria }}" data-marca="{{ producto.marca }}">
+                        <img src="{{ producto.imagen }}" alt="{{ producto.nombre }}" class="producto-imagen">
                         <h3>{{ producto.nombre }}</h3>
                         <p>Marca: {{ producto.marca }}</p>
                         <p>Precio: ${{ producto.precio }}</p>
@@ -594,6 +603,7 @@
                         productCard.dataset.categoria = product.categoria;
                         productCard.dataset.marca = product.marca;
                         productCard.innerHTML = `
+                            <img src="${producto.imagen}" alt="${producto.nombre}" class="producto-imagen">
                             <h3>${product.nombre}</h3>
                             <p>Marca: ${product.marca}</p>
                             <p>Precio: $${product.precio}</p>
@@ -751,20 +761,23 @@
         function filtrarProductos() {
             const categoria = document.getElementById("categoria").value;
             const marca = document.getElementById("marca").value;
-            
+
             fetch(`/filtrar_productos?categoria=${categoria}&marca=${marca}`)
                 .then(response => response.json())
                 .then(data => {
                     const container = document.getElementById("productos");
-                    container.innerHTML = "";
-                    
+                    container.innerHTML = ""; // Limpiar el contenedor de productos
+
                     if (data.productos && data.productos.length > 0) {
                         data.productos.forEach(producto => {
                             const productCard = document.createElement("div");
                             productCard.className = "producto-card";
                             productCard.dataset.categoria = producto.categoria;
                             productCard.dataset.marca = producto.marca;
+
+                            // Generar el HTML de la tarjeta del producto, incluyendo la imagen
                             productCard.innerHTML = `
+                                <img src="${producto.imagen}" alt="${producto.nombre}" class="producto-imagen">
                                 <h3>${producto.nombre}</h3>
                                 <p>Marca: ${producto.marca}</p>
                                 <p>Precio: $${producto.precio.toFixed(2)}</p>
@@ -773,6 +786,7 @@
                                 </button>
                                 <div id="paypal-button-container-${producto.id}"></div>
                             `;
+
                             container.appendChild(productCard);
 
                             // Renderizar botón de PayPal para cada producto
@@ -795,7 +809,7 @@
                                 }).render(`#paypal-button-container-${producto.id}`);
                             }
                         });
-                        
+
                         // Agregar event listeners a los nuevos botones
                         document.querySelectorAll(".add-to-cart").forEach(button => {
                             button.addEventListener("click", agregarAlCarrito);
@@ -803,6 +817,11 @@
                     } else {
                         container.innerHTML = "<p>No se encontraron productos con esos filtros</p>";
                     }
+                })
+                .catch(error => {
+                    console.error("Error al filtrar productos:", error);
+                    const container = document.getElementById("productos");
+                    container.innerHTML = "<p>Error al cargar los productos</p>";
                 });
         }
         
