@@ -5,7 +5,7 @@ from werkzeug.security import generate_password_hash
 # Crear el contexto de la aplicación
 with app.app_context():
     # Buscar si el usuario ya existe en la BD
-    admin_existente = Usuario.query.filter_by(correo="andersonchuly@gmail.com").first()
+    admin_existente = Usuario.query.filter_by(correo="andersonn.penac@uqvirtual.edu.co").first()
     
     if admin_existente:
         if not admin_existente.es_admin:
@@ -20,8 +20,8 @@ with app.app_context():
         nuevo_admin = Usuario(
             nombre="Admin",
             apellidos="Sistema",
-            correo="andersonchuly@gmail.com",
-            contraseña=generate_password_hash("admin123"),  
+            correo="andersonn.penac@uqvirtual.edu.co",
+            contraseña=generate_password_hash("toro12"),  
             es_admin=True  
         )
 

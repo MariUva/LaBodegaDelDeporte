@@ -443,8 +443,14 @@ def crear_producto():
     try:
         # Verificar si el contenido es multipart/form-data
         if 'multipart/form-data' not in request.content_type:
+            print("⚠️ Error: El contenido no es multipart/form-data")
             return jsonify({'success': False, 'error': 'El contenido debe ser multipart/form-data'}), 400
 
+        # Depuración: Imprimir los datos recibidos
+        print("📥 request.form:", request.form)
+        print("📥 request.files:", request.files)
+
+        # Obtener los datos del formulario
         nombre = request.form.get('nombre')
         descripcion = request.form.get('descripcion')
         precio = request.form.get('precio')
@@ -453,30 +459,103 @@ def crear_producto():
         marca_id = request.form.get('marca_id')
         imagen = request.files.get('imagen')
 
-        # Crear el nuevo producto
+        # Validar que todos los campos requeridos estén presentes
+        if not all([nombre, descripcion, precio, stock, categoria_id, marca_id, imagen]):
+            print("❌ Error: Faltan campos obligatorios")
+            return jsonify({'success': False, 'error': 'Todos los campos son obligatorios'}), 400
+
+        # Subir la imagen a Cloudinary
+        try:
+            upload_result = cloudinary.uploader.upload(imagen, folder="productos")
+            imagen_url = upload_result.get("secure_url")
+            print(f"✅ Imagen subida a Cloudinary: {imagen_url}")
+        except Exception as e:
+            print(f"❌ Error al subir la imagen a Cloudinary: {str(e)}")
+            return jsonify({'success': False, 'error': f'Error al subir la imagen: {str(e)}'}), 500
+
+        # Crear el producto en la base de datos
         nuevo_producto = Producto(
             nombre=nombre,
             descripcion=descripcion,
-            precio=precio,
-            stock=stock,
-            categoria_id=categoria_id,
-            marca_id=marca_id
+            precio=float(precio),
+            stock=int(stock),
+            categoria_id=int(categoria_id),
+            marca_id=int(marca_id),
+            imagen=imagen_url
         )
-
-        # Si hay una imagen, subirla a Cloudinary
-        if imagen:
-            upload_result = cloudinary.uploader.upload(imagen, folder=f"productos/{nuevo_producto.id}")
-            nuevo_producto.imagen = upload_result.get("secure_url")
-
-        # Guardar el producto en la base de datos
         db.session.add(nuevo_producto)
         db.session.commit()
 
-        flash('Producto creado con éxito', 'success')
-        return redirect(url_for('categorias_admin'))
+        print("✅ Producto creado con éxito")
+        return jsonify({'success': True, 'message': 'Producto creado con éxito'}), 201
 
     except Exception as e:
-        app.logger.error(f"Error al crear el producto: {str(e)}", exc_info=True)
+        app.logger.error(f"❌ Error al crear el producto: {str(e)}", exc_info=True)
+        return jsonify({'success': False, 'error': 'Error interno del servidor'}), 500
+       
+@app.route('/editar_producto', methods=['POST'])
+def editar_producto():
+    try:
+        # Verificar si el contenido es multipart/form-data
+        if 'multipart/form-data' not in request.content_type:
+            print("Error: El contenido no es multipart/form-data")
+            return jsonify({'success': False, 'error': 'El contenido debe ser multipart/form-data'}), 400
+
+        # Obtener los datos del formulario
+        producto_id = request.form.get('producto_id')
+        nombre = request.form.get('nombre')
+        descripcion = request.form.get('descripcion')
+        precio = request.form.get('precio')
+        stock = request.form.get('stock')
+        categoria_id = request.form.get('categoria_id')
+        marca_id = request.form.get('marca_id')
+        imagen = request.files.get('imagen')
+
+        # Imprimir los valores recibidos para depuración
+        print(f"Producto ID: {producto_id}")
+        print(f"Nombre: {nombre}")
+        print(f"Descripción: {descripcion}")
+        print(f"Precio: {precio}")
+        print(f"Stock: {stock}")
+        print(f"Categoría ID: {categoria_id}")
+        print(f"Marca ID: {marca_id}")
+        print(f"Imagen: {imagen}")
+
+        # Obtener el producto existente
+        producto = Producto.query.get(producto_id)
+        if not producto:
+            return jsonify({'success': False, 'error': 'Producto no encontrado'}), 404
+
+        # Actualizar los datos del producto
+        producto.nombre = nombre
+        producto.descripcion = descripcion
+        producto.precio = precio
+        producto.stock = stock
+        producto.categoria_id = categoria_id
+        producto.marca_id = marca_id
+
+        # Si hay una nueva imagen, subirla a Cloudinary
+        if imagen:
+            try:
+                upload_result = cloudinary.uploader.upload(imagen, folder=f"productos/{producto.id}")
+                producto.imagen = upload_result.get("secure_url")
+                print(f"Imagen subida a Cloudinary: {producto.imagen}")
+            except Exception as e:
+                print(f"Error al subir la imagen a Cloudinary: {str(e)}")
+                return jsonify({'success': False, 'error': 'Error al subir la imagen'}), 500
+
+        # Guardar los cambios en la base de datos
+        try:
+            db.session.commit()
+            print("Producto actualizado y guardado en la base de datos")
+        except Exception as e:
+            print(f"Error al guardar el producto en la base de datos: {str(e)}")
+            return jsonify({'success': False, 'error': 'Error al guardar en la base de datos'}), 500
+
+        return jsonify({'success': True}), 200
+
+    except Exception as e:
+        app.logger.error(f"Error al editar el producto: {str(e)}", exc_info=True)
         return jsonify({'success': False, 'error': 'Error interno del servidor'}), 500
     
 @app.route('/get_productos', methods=['GET'])
