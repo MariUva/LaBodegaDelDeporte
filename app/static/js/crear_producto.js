@@ -1,11 +1,17 @@
-document.getElementById("createForm").addEventListener("submit", async function(event) {
+const createForm = document.getElementById("createForm");
+
+// Elimina cualquier evento previamente registrado
+createForm.removeEventListener("submit", handleCreateFormSubmit);
+
+// Registra el evento
+createForm.addEventListener("submit", handleCreateFormSubmit);
+
+// Define la función manejadora
+async function handleCreateFormSubmit(event) {
     event.preventDefault(); // Evita el comportamiento predeterminado del formulario
 
     // Crear un objeto FormData para capturar los datos del formulario
     const formData = new FormData(this);
-
-    // Depuración: Verificar los datos que se están enviando
-    console.log("Datos enviados al backend:");
 
     try {
         // Enviar los datos al backend
@@ -28,4 +34,4 @@ document.getElementById("createForm").addEventListener("submit", async function(
         console.error("Error al enviar el formulario:", error);
         alert("Error al enviar el formulario");
     }
-});
+}
