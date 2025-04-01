@@ -5,10 +5,7 @@ document.getElementById("createForm").addEventListener("submit", async function(
     const formData = new FormData(this);
 
     // Depuración: Verificar los datos que se están enviando
-    console.log("📤 Datos enviados al backend:");
-    for (let pair of formData.entries()) {
-        console.log(`${pair[0]}: ${pair[1]}`);
-    }
+    console.log("Datos enviados al backend:");
 
     try {
         // Enviar los datos al backend
