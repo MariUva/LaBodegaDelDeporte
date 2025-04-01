@@ -827,25 +827,37 @@
         
         // Rellenar marcas cuando se selecciona categoría
         document.getElementById("categoria").addEventListener("change", function() {
-            const categoria = this.value;
-            const marcaSelect = document.getElementById("marca");
+    const categoria = this.value; // Obtener la categoría seleccionada
+    const marcaSelect = document.getElementById("marca"); // Select de marcas
+
+    // Limpiar las opciones actuales del select de marcas
+    marcaSelect.innerHTML = '<option value="">Selecciona una marca</option>';
+
+    if (categoria) {
+        // Hacer una solicitud al servidor para obtener las marcas de la categoría seleccionada
+        fetch(`/get_marcas?categoria=${encodeURIComponent(categoria)}`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error("Error al obtener las marcas");
+                }
+                return response.json();
+            })
+            .then(data => {
+                // Agregar las marcas al select de marcas
+                data.marcas.forEach(marca => {
+                    const option = document.createElement("option");
+                    option.value = marca;
+                    option.textContent = marca;
+                    marcaSelect.appendChild(option);
+                });
+            })
+            .catch(error => {
+                console.error("Error al cargar las marcas:", error);
+                alert("Hubo un error al cargar las marcas. Inténtalo de nuevo.");
+            });
+    }
+});
             
-            marcaSelect.innerHTML = '<option value="">Selecciona una marca</option>';
-            
-            if (categoria) {
-                fetch(`/get_marcas?categoria=${categoria}`)
-                    .then(response => response.json())
-                    .then(data => {
-                        data.marcas.forEach(marca => {
-                            const option = document.createElement("option");
-                            option.value = marca;
-                            option.textContent = marca;
-                            marcaSelect.appendChild(option);
-                        });
-                    });
-            }
-        });
-        
         // Botón de pagar
         document.getElementById("btn-pagar").addEventListener("click", function() {
             if (carrito.length === 0) {
