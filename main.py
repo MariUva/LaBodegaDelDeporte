@@ -624,12 +624,16 @@ def delete_producto(product_id):
         return jsonify({"success": False, "error": "Error interno del servidor"}), 500
 
 
-@app.route('/get_marcas/<int:categoria_id>')
-def get_marcas(categoria_id):
-    categoria_obj = Categoria.query.get(categoria_id)
-    marcas = categoria_obj.marcas if categoria_obj else []
-    
-    return render_template('marcas_dropdown.html', marcas=marcas)
+@app.route('/get_marcas')
+def get_marcas():
+    categoria_nombre = request.args.get('categoria')  # Obtener el nombre de la categoría desde los parámetros
+    categoria = Categoria.query.filter_by(nombre=categoria_nombre).first()  # Buscar la categoría por nombre
+
+    if categoria:
+        marcas = [marca.nombre for marca in categoria.marcas]  # Obtener las marcas asociadas
+        return jsonify({"marcas": marcas})
+    else:
+        return jsonify({"marcas": []})  # Si no se encuentra la catego
 
 @app.route('/filtrar_productos')
 def filtrar_productos():
