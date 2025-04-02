@@ -710,6 +710,16 @@ def agregar_al_carrito():
 
     return redirect(url_for('ver_carrito'))
 
+@app.route('/actualizar_carrito', methods=['POST'])
+def actualizar_carrito():
+    try:
+        data = request.get_json()
+        session['carrito'] = data['carrito']
+        session.modified = True
+        return jsonify({'success': True})
+    except Exception as e:
+        app.logger.error(f"Error al actualizar carrito: {str(e)}")
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route("/pay", methods=["POST"])
 def create_payment():
@@ -742,6 +752,16 @@ def execute_payment():
         return jsonify({"status": "success"})
     else:
         return jsonify({"error": payment.error}), 400
+
+@app.route('/limpiar_carrito', methods=['POST'])
+def limpiar_carrito():
+    try:
+        session.pop('carrito', None)
+        session.modified = True
+        return jsonify({'success': True})
+    except Exception as e:
+        app.logger.error(f"Error al limpiar carrito: {str(e)}")
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/pago')
 def pago():

@@ -5,109 +5,225 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pago - Bodega Del Deporte</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='pago.css') }}">
     <style>
         body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
             margin: 0;
             padding: 0;
-            text-align: center;
+            color: #333;
         }
+        
         header {
-            background-color: #808080;
+            background: linear-gradient(135deg, #2c3e50, #3498db);
             color: white;
-            padding: 15px;
-            font-size: 24px;
-            display: flex;
-            justify-content: center;
+            padding: 1rem;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
+        
         .pago-container {
             background: white;
             border-radius: 8px;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-            padding: 20px;
+            padding: 2rem;
+            width: 90%;
+            max-width: 800px;
+            margin: 2rem auto;
+        }
+        
+        .carrito-section {
+            margin-bottom: 2rem;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 1.5rem;
+        }
+        
+        .carrito-title {
+            font-size: 1.5rem;
+            color: #2c3e50;
+            margin-bottom: 1.5rem;
+            text-align: left;
+        }
+        
+        .carrito-items {
             width: 100%;
-            max-width: 500px;
-            margin: 20px auto;
+            border-collapse: collapse;
+            margin-bottom: 1.5rem;
         }
-        .carrito {
+        
+        .carrito-items th {
+            background-color: #3498db;
+            color: white;
+            padding: 0.8rem;
             text-align: left;
-            margin-bottom: 20px;
         }
-        .carrito h3 {
-            margin-bottom: 10px;
+        
+        .carrito-items td {
+            padding: 0.8rem;
+            border-bottom: 1px solid #eee;
+            text-align: left;
         }
-        .carrito ul {
-            list-style: none;
-            padding: 0;
+        
+        .carrito-items tr:last-child td {
+            border-bottom: none;
         }
-        .carrito ul li {
-            padding: 5px;
-            border-bottom: 1px solid #ccc;
+        
+        .carrito-items tr:hover {
+            background-color: #f8f9fa;
         }
-        .total {
-            font-size: 18px;
-            font-weight: bold;
-            margin-top: 10px;
+        
+        .total-section {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 1.5rem;
         }
+        
+        .total-box {
+            background-color: #f8f9fa;
+            border-radius: 6px;
+            padding: 1rem 1.5rem;
+            text-align: right;
+            width: fit-content;
+        }
+        
+        .total-label {
+            font-weight: 600;
+            color: #555;
+            margin-right: 1rem;
+        }
+        
+        .total-amount {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #2c3e50;
+        }
+        
         .form-group {
-            margin-bottom: 15px;
+            margin-bottom: 1.5rem;
             text-align: left;
         }
+        
         .form-group label {
             display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #555;
         }
+        
         .form-group input,
         .form-group select {
             width: 100%;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            font-size: 16px;
+            padding: 0.8rem;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 1rem;
+            transition: border 0.3s;
         }
+        
+        .form-group input:focus,
+        .form-group select:focus {
+            border-color: #3498db;
+            outline: none;
+        }
+        
         .btn-confirmar, .btn-volver {
             width: 100%;
-            padding: 10px;
-            background-color: #007BFF;
-            color: white;
+            padding: 1rem;
             border: none;
-            border-radius: 5px;
+            border-radius: 6px;
             cursor: pointer;
-            font-size: 16px;
-            margin-top: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: background 0.3s;
         }
-        .btn-confirmar:hover, .btn-volver:hover {
-            background-color: #0056b3;
+        
+        .btn-confirmar {
+            background-color: #3498db;
+            color: white;
+            margin-top: 1rem;
         }
+        
+        .btn-confirmar:hover {
+            background-color: #2980b9;
+        }
+        
+        .btn-volver {
+            background-color: #f8f9fa;
+            color: #333;
+            margin-top: 1rem;
+            border: 1px solid #ddd;
+        }
+        
+        .btn-volver:hover {
+            background-color: #e9ecef;
+        }
+        
         .paypal-button-container {
+            margin-top: 1.5rem;
             display: none;
-            margin-top: 20px;
+        }
+        
+        #tarjeta-info {
+            display: none;
+        }
+        
+        @media (max-width: 768px) {
+            .pago-container {
+                padding: 1rem;
+                width: 95%;
+            }
+            
+            .carrito-items {
+                font-size: 0.9rem;
+            }
+            
+            .total-amount {
+                font-size: 1.2rem;
+            }
         }
     </style>
 </head>
 <body>
     <header>
-        <h1>Bodega Del Deporte</h1>
+        <h1>Bodega Del Deporte - Finalizar Compra</h1>
     </header>
 
     <div class="pago-container">
-        <h2>Detalles del Pago</h2>
-
-        <!-- Sección para mostrar productos del carrito -->
-        <div class="carrito">
-            <h3>Productos en el carrito</h3>
-            <ul id="lista-carrito">
-                {% for producto in carrito %}
-                    <li>{{ producto.nombre }} - ${{ producto.precio }} x {{ producto.cantidad }}</li>
-                {% endfor %}
-            </ul>
-            <h3 class="total">Total a pagar: $<span id="total-pagar">{{ total }}</span></h3>
-        </div>
+        <section class="carrito-section">
+            <h2 class="carrito-title">Resumen de tu compra</h2>
+            
+            <table class="carrito-items">
+                <thead>
+                    <tr>
+                        <th>Producto</th>
+                        <th>Precio Unitario</th>
+                        <th>Cantidad</th>
+                        <th>Subtotal</th>
+                    </tr>
+                </thead>
+                <tbody id="lista-carrito">
+                    {% for producto in carrito %}
+                    <tr>
+                        <td>{{ producto.nombre }}</td>
+                        <td>${{ "%.2f"|format(producto.precio) }}</td>
+                        <td>{{ producto.cantidad }}</td>
+                        <td>${{ "%.2f"|format(producto.precio * producto.cantidad) }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            
+            <div class="total-section">
+                <div class="total-box">
+                    <span class="total-label">Total a pagar:</span>
+                    <span class="total-amount">${{ "%.2f"|format(total) }}</span>
+                </div>
+            </div>
+        </section>
 
         <form id="form-pago">
+            <h2 class="carrito-title">Información de pago</h2>
+            
             <div class="form-group">
                 <label for="nombre">Nombre Completo</label>
                 <input type="text" id="nombre" name="nombre" required>
@@ -127,81 +243,123 @@
                 <label for="banco">Método de Pago</label>
                 <select id="banco" name="banco" required>
                     <option value="">Selecciona un método</option>
-                    <option value="bancolombia">Bancolombia</option>
-                    <option value="davivienda">Davivienda</option>
-                    <option value="bbva">BBVA</option>
-                    <option value="banco_de_bogota">Banco de Bogotá</option>
-                    <option value="banco_popular">Banco Popular</option>
+                    <option value="tarjeta">Tarjeta de Crédito/Débito</option>
                     <option value="daviplata">DaviPlata</option>
                     <option value="nequi">Nequi</option>
+                    <option value="pse">PSE</option>
                 </select>
             </div>
 
             <div id="tarjeta-info">
                 <div class="form-group">
                     <label for="numero-tarjeta">Número de Tarjeta</label>
-                    <input type="text" id="numero-tarjeta" name="numero-tarjeta">
+                    <input type="text" id="numero-tarjeta" name="numero-tarjeta" placeholder="1234 5678 9012 3456">
                 </div>
 
                 <div class="form-group">
                     <label for="fecha-expiracion">Fecha de Expiración</label>
-                    <input type="text" id="fecha-expiracion" name="fecha-expiracion" placeholder="MM/YY">
+                    <input type="text" id="fecha-expiracion" name="fecha-expiracion" placeholder="MM/AA">
                 </div>
 
                 <div class="form-group">
                     <label for="cvv">CVV</label>
-                    <input type="text" id="cvv" name="cvv">
+                    <input type="text" id="cvv" name="cvv" placeholder="123">
                 </div>
             </div>
 
             <div class="form-group">
                 <label for="direccion">Dirección de Envío</label>
-                <input type="text" id="direccion" name="direccion" required>
+                <input type="text" id="direccion" name="direccion" required placeholder="Calle, número, ciudad, departamento">
             </div>
 
             <button type="submit" class="btn-confirmar">Confirmar Pago</button>
         </form>
 
-        <!-- Botón para volver a la pestaña anterior -->
-        <button class="btn-volver" onclick="window.history.back();">Volver</button>
+        <button class="btn-volver" onclick="window.history.back();">Volver al carrito</button>
 
-        <!-- Botón de PayPal -->
         <div class="paypal-button-container" id="paypal-button-container"></div>
     </div>
 
-    <script src="https://www.paypal.com/sdk/js?client-id=TUSANDBOX_CLIENT_ID"></script>
+    <script src="https://www.paypal.com/sdk/js?client-id=TUSANDBOX_CLIENT_ID&currency=USD"></script>
     <script>
-        document.getElementById("form-pago").addEventListener("submit", function (event) {
-            event.preventDefault();
-
-            const banco = document.getElementById("banco").value;
+        // Mostrar/ocultar campos de tarjeta según método de pago
+        document.getElementById("banco").addEventListener("change", function() {
+            const metodoPago = this.value;
+            const tarjetaInfo = document.getElementById("tarjeta-info");
+            const paypalButton = document.getElementById("paypal-button-container");
             
-            if (banco === "daviplata" || banco === "nequi") {
-                alert("Redirigiendo a PayPal para verificar el pago...");
-                document.getElementById("paypal-button-container").style.display = "block";
+            if (metodoPago === "tarjeta") {
+                tarjetaInfo.style.display = "block";
+                paypalButton.style.display = "none";
+            } else if (metodoPago === "daviplata" || metodoPago === "nequi") {
+                tarjetaInfo.style.display = "none";
+                paypalButton.style.display = "block";
             } else {
-                alert("Pago realizado exitosamente con tarjeta.");
-                window.location.href = "/"; // Redirigir a la página principal
+                tarjetaInfo.style.display = "none";
+                paypalButton.style.display = "none";
             }
         });
-
+        
+        // Procesar el formulario de pago
+        document.getElementById("form-pago").addEventListener("submit", function(event) {
+            event.preventDefault();
+            
+            const metodoPago = document.getElementById("banco").value;
+            
+            if (metodoPago === "daviplata" || metodoPago === "nequi") {
+                // El pago se manejará con PayPal
+                return;
+            }
+            
+            // Simular procesamiento de pago
+            alert("¡Pago procesado con éxito!");
+            
+            // Limpiar el carrito
+            fetch('/limpiar_carrito', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            });
+            
+            // Redirigir a la página de confirmación
+            window.location.href = "/confirmacion";
+        });
+        
+        // Configurar botón de PayPal
         paypal.Buttons({
-            createOrder: function (data, actions) {
+            style: {
+                layout: 'vertical',
+                color: 'blue',
+                shape: 'rect',
+                label: 'paypal'
+            },
+            createOrder: function(data, actions) {
                 return actions.order.create({
                     purchase_units: [{
                         amount: {
-                            value: document.getElementById("total-pagar").innerText
+                            value: '{{ "%.2f"|format(total) }}'
                         }
                     }]
                 });
             },
-            onApprove: function (data, actions) {
-                return actions.order.capture().then(function (details) {
-                    alert("Pago exitoso con PayPal.");
-                    window.location.href = "/";
+            onApprove: function(data, actions) {
+                return actions.order.capture().then(function(details) {
+                    alert('¡Pago completado por ' + details.payer.name.given_name + '!');
+                    
+                    // Limpiar el carrito
+                    fetch('/limpiar_carrito', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        }
+                    });
+                    
+                    // Redirigir a la página de confirmación
+                    window.location.href = "/confirmacion";
                 });
             }
-        }).render("#paypal-button-container");
+        }).render('#paypal-button-container');
     </script>
 </body>
 </html>
