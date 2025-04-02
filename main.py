@@ -809,10 +809,6 @@ def ingreso_inventario():
         flash("Acceso no autorizado", "danger")
         return redirect(url_for('login'))
 
-    # Obtener categorías y marcas para los selects
-    categorias = Categoria.query.all()
-    marcas = Marca.query.all()
-
     if request.method == 'POST':
         try:
             # Obtener datos del formulario
@@ -821,21 +817,14 @@ def ingreso_inventario():
             precio = float(request.form.get('precio'))
             stock = int(request.form.get('stock'))
             lote = request.form.get('lote')
-            verificado = request.form.get('verificado') == 'on'
+            verificado = 'verificado' in request.form  # True si el checkbox estaba marcado
             categoria_id = int(request.form.get('categoria_id'))
             marca_id = int(request.form.get('marca_id'))
             imagen = request.files.get('imagen')
 
-            # Validar campos obligatorios
-            if not all([nombre, precio, stock, lote, categoria_id, marca_id]):
-                flash("Todos los campos son obligatorios", "danger")
-                return redirect(url_for('ingreso_inventario'))
-
-            # Subir imagen a Cloudinary si existe
-            imagen_url = None
-            if imagen:
-                upload_result = cloudinary.uploader.upload(imagen, folder="productos")
-                imagen_url = upload_result.get("secure_url")
+            # Subir imagen a Cloudinary
+            upload_result = cloudinary.uploader.upload(imagen, folder="productos")
+            imagen_url = upload_result.get("secure_url")
 
             # Crear nuevo producto
             nuevo_producto = Producto(
@@ -859,9 +848,12 @@ def ingreso_inventario():
         except Exception as e:
             db.session.rollback()
             flash(f'Error al ingresar producto: {str(e)}', 'danger')
+            return redirect(url_for('ingreso_inventario'))
 
-    return render_template('ingresoInventario.html', categorias=categorias, marcas=marcas)
-
+    # Si es GET, mostrar el formulario
+    marcas = Marca.query.all()
+    return render_template('ingresoInventario.html', marcas=marcas)
+    
 # ========================== EJECUCIÓN ==========================
 if __name__ == "__main__":
     debug_mode = os.getenv("FLASK_DEBUG", "False").lower() == "true"
