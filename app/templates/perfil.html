@@ -1,209 +1,411 @@
-<!-- Plantilla para la página de perfil de usuario -->
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Perfil de Usuario</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Perfil de Usuario</title>
+    <title>Perfil de Usuario - La Bodega del Deporte</title>
     <style>
+        /* Reset y estilos base */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: Arial, sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
-
+        
+        html, body {
+            height: 100%;
+            width: 100%;
+        }
+        
         body {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            background: linear-gradient(to right, #1e3c72, #2a5298);
-        }
-
-        .profile-container {
-            text-align: center;
-        }
-
-        .profile-card {
-            background: white;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-            width: 320px;
-            position: relative;
-        }.back-btn {
-            position: absolute;
-            top: 15px;
-            left: 15px;
-            background: none;
-            border: none;
-            font-size: 18px; /* Tamaño más pequeño */
-            cursor: pointer;
-            color: #007bff; /* Azul */
-            transition: color 0.3s;
-        }
-
-        .back-btn:hover {
-            color: #0056b3; /* Azul más oscuro al pasar el mouse */
-        }
-
-
-
-        .icon-placeholder {
-            margin-bottom: 15px;
-        }
-
-        h2 {
-            margin-bottom: 5px;
+            background-color: #f8f9fa;
             color: #333;
-        }
-
-        .user-role {
-            font-size: 14px;
-            color: gray;
-            margin-bottom: 20px;
-        }
-
-        .profile-info {
-            text-align: left;
-            margin-bottom: 20px;
-        }
-
-        .profile-info p {
-            margin: 10px 0;
-            font-size: 14px;
-            color: #333;
-        }
-
-        .profile-info label {
-            font-weight: bold;
-            margin-right: 10px;
-        }
-
-        .profile-actions {
+            line-height: 1.6;
             display: flex;
             flex-direction: column;
-            gap: 10px;
+        }
+        
+        /* Header */
+        header {
+            background: linear-gradient(135deg, #2c3e50, #3498db);
+            color: white;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
             align-items: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
         }
-
-        .btn {
-            width: 100%;
-            padding: 10px;
-            border-radius: 5px;
-            text-decoration: none;
-            text-align: center;
-            color: white;
-            font-weight: bold;
+        
+        .header-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 60%;
+        }
+        
+        .header-actions {
+            display: flex;
+            gap: 1.5rem;
+        }
+        
+        .icon-button {
+            background: none;
             border: none;
+            color: white;
+            font-size: 1.5rem;
             cursor: pointer;
-            transition: 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         }
-
-        .btn:hover {
-            opacity: 0.8;
+        
+        /* Contenedor principal */
+        .main-container {
+            flex: 1;
+            width: 100%;
+            padding: 2rem;
+            overflow-y: auto;
         }
-
-        .btn.change-password {
-            background: #28a745;
+        
+        /* Tarjeta de perfil */
+        .profile-card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            padding: 2rem;
+            max-width: 800px;
+            margin: 0 auto;
         }
-
-        .btn.logout {
-            background: #dc3545;
+        
+        .profile-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 2rem;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 1.5rem;
         }
-
-        .change-password-form {
+        
+        .profile-avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background-color: #3498db;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 2.5rem;
+            margin-right: 1.5rem;
+        }
+        
+        .profile-info {
+            flex: 1;
+        }
+        
+        .profile-name {
+            font-size: 1.8rem;
+            color: #2c3e50;
+            margin-bottom: 0.5rem;
+        }
+        
+        .profile-role {
+            display: inline-block;
+            background: #3498db;
+            color: white;
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+        
+        /* Sección de información */
+        .info-section {
+            margin-bottom: 2rem;
+        }
+        
+        .section-title {
+            font-size: 1.2rem;
+            color: #2c3e50;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 1.5rem;
+        }
+        
+        .info-item {
+            margin-bottom: 1rem;
+        }
+        
+        .info-label {
+            font-weight: 600;
+            color: #555;
+            margin-bottom: 0.3rem;
+            display: block;
+        }
+        
+        .info-value {
+            color: #333;
+            padding: 0.8rem;
+            background: #f8f9fa;
+            border-radius: 6px;
+            border: 1px solid #eee;
+        }
+        
+        /* Formulario de cambio de contraseña */
+        .password-form {
             display: none;
-            margin-top: 15px;
+            margin-top: 1.5rem;
+            padding: 1.5rem;
+            background: #f8f9fa;
+            border-radius: 8px;
         }
-
-        .change-password-form input {
-            width: 100%;
-            padding: 10px;
-            margin-bottom: 10px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
+        
+        .form-group {
+            margin-bottom: 1rem;
         }
-
-        .change-password-form button {
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #555;
+        }
+        
+        .form-group input {
             width: 100%;
-            padding: 10px;
-            background: #28a745;
-            color: white;
-            border: none;
-            border-radius: 5px;
+            padding: 0.8rem;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 1rem;
+        }
+        
+        /* Botones */
+        .btn {
+            padding: 0.8rem 1.5rem;
+            border-radius: 6px;
+            font-weight: 600;
             cursor: pointer;
-            font-weight: bold;
+            transition: all 0.3s;
+            border: none;
+            font-size: 1rem;
+        }
+        
+        .btn-primary {
+            background: #3498db;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #2980b9;
+        }
+        
+        .btn-danger {
+            background: #e74c3c;
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background: #c0392b;
+        }
+        
+        .btn-secondary {
+            background: #95a5a6;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: #7f8c8d;
+        }
+        
+        .btn-group {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+        
+        /* Mensajes */
+        .alert {
+            padding: 1rem;
+            border-radius: 6px;
+            margin-bottom: 1rem;
+            display: none;
+        }
+        
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .alert-danger {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .profile-header {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .profile-avatar {
+                margin-right: 0;
+                margin-bottom: 1rem;
+            }
+            
+            .btn-group {
+                flex-direction: column;
+            }
+            
+            .btn {
+                width: 100%;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="profile-container">
-        <div class="profile-card">
-            
-            <!-- Botón de regreso -->
-            <button class="back-btn" onclick="window.location.href='/categorias'">←</button>
-
-
-            <div class="icon-placeholder">
-                <svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" fill="currentColor" class="bi bi-person-circle" viewBox="0 0 16 16">
-                    <path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0"/>
-                    <path fill-rule="evenodd" d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8m8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1"/>
+    <header>
+        <h1 class="header-title">Perfil de Usuario</h1>
+        
+        <div class="header-actions">
+            <!-- Botón para volver -->
+            <button class="icon-button" onclick="window.location.href='/categorias'">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M19 12H5M12 19l-7-7 7-7"/>
                 </svg>
+                <span>Volver</span>
+            </button>
+        </div>
+    </header>
+    
+    <div class="main-container">
+        <div class="profile-card">
+            <!-- Encabezado del perfil -->
+            <div class="profile-header">
+                <div class="profile-avatar">
+                    {{ usuario.nombre[0] }}{{ usuario.apellidos[0] if usuario.apellidos else '' }}
+                </div>
+                <div class="profile-info">
+                    <h1 class="profile-name">{{ usuario.nombre }} {{ usuario.apellidos }}</h1>
+                    <span class="profile-role">{{ "Administrador" if usuario.es_admin else "Usuario" }}</span>
+                </div>
             </div>
-            <h2>{{ usuario.nombre }} {{ usuario.apellidos }}</h2>
-            <p class="user-role">{{ "Administrador" if usuario.es_admin else "Usuario" }}</p>
-
-            <!-- Información del perfil -->
-            <div class="profile-info">
-                <p><label>Nombre:</label> {{ usuario.nombre }}</p>
-                <p><label>Apellidos:</label> {{ usuario.apellidos }}</p>
-                <p><label>Correo:</label> {{ usuario.correo }}</p>
-                <p>
-                    <label>Contraseña:</label>
-                    <span>********</span>
-                    <p class="password-info">La contraseña está cifrada por seguridad.</p>
-                </p>
+            
+            <!-- Información del usuario -->
+            <div class="info-section">
+                <h2 class="section-title">Información Personal</h2>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <span class="info-label">Nombre</span>
+                        <div class="info-value">{{ usuario.nombre }}</div>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Apellidos</span>
+                        <div class="info-value">{{ usuario.apellidos }}</div>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Correo electrónico</span>
+                        <div class="info-value">{{ usuario.correo }}</div>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Contraseña</span>
+                        <div class="info-value">********</div>
+                        <small style="display: block; margin-top: 0.5rem; color: #777;">La contraseña está cifrada por seguridad</small>
+                    </div>
+                </div>
             </div>
-
-            <!-- Botón para mostrar el formulario de cambio de contraseña -->
-            <button class="btn change-password" onclick="toggleChangePasswordForm()">Cambiar Contraseña</button>
-
-            <!-- Formulario para cambiar la contraseña -->
-            <div class="change-password-form" id="changePasswordForm">
-                <input type="password" id="nuevaContraseña" placeholder="Nueva contraseña" required>
-                <input type="password" id="confirmarContraseña" placeholder="Confirmar contraseña" required>
-                <button onclick="changePassword()">Guardar Cambios</button>
+            
+            <!-- Mensajes -->
+            <div class="alert alert-success" id="mensaje-exito"></div>
+            <div class="alert alert-danger" id="mensaje-error"></div>
+            
+            <!-- Cambio de contraseña -->
+            <div class="info-section">
+                <h2 class="section-title">Seguridad</h2>
+                <button class="btn btn-primary" onclick="togglePasswordForm()">Cambiar Contraseña</button>
+                
+                <div class="password-form" id="passwordForm">
+                    <div class="form-group">
+                        <label for="nuevaContraseña">Nueva Contraseña</label>
+                        <input type="password" id="nuevaContraseña" placeholder="Ingresa tu nueva contraseña" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="confirmarContraseña">Confirmar Contraseña</label>
+                        <input type="password" id="confirmarContraseña" placeholder="Confirma tu nueva contraseña" required>
+                    </div>
+                    <div class="btn-group">
+                        <button class="btn btn-primary" onclick="changePassword()">Guardar Cambios</button>
+                        <button class="btn btn-secondary" onclick="togglePasswordForm()">Cancelar</button>
+                    </div>
+                </div>
             </div>
-
-            <!-- Acciones del perfil -->
-            <div class="profile-actions">
-                <a href="/logout" class="btn logout">Cerrar Sesión</a>
+            
+            <!-- Acciones -->
+            <div class="btn-group">
+                <button class="btn btn-danger" onclick="window.location.href='/logout'">Cerrar Sesión</button>
             </div>
         </div>
     </div>
 
-    <!-- Script para manejar el cambio de contraseña -->
     <script>
         // Función para mostrar/ocultar el formulario de cambio de contraseña
-        function toggleChangePasswordForm() {
-            const form = document.getElementById("changePasswordForm");
+        function togglePasswordForm() {
+            const form = document.getElementById("passwordForm");
             form.style.display = form.style.display === "none" ? "block" : "none";
+            
+            // Limpiar los campos al ocultar el formulario
+            if (form.style.display === "none") {
+                document.getElementById("nuevaContraseña").value = "";
+                document.getElementById("confirmarContraseña").value = "";
+                hideMessages();
+            }
         }
-
+        
+        // Función para ocultar los mensajes
+        function hideMessages() {
+            document.getElementById("mensaje-exito").style.display = "none";
+            document.getElementById("mensaje-error").style.display = "none";
+        }
+        
         // Función para cambiar la contraseña
         async function changePassword() {
             const nuevaContraseña = document.getElementById("nuevaContraseña").value;
             const confirmarContraseña = document.getElementById("confirmarContraseña").value;
-
-            if (nuevaContraseña !== confirmarContraseña) {
-                alert("Las contraseñas no coinciden.");
+            const mensajeExito = document.getElementById("mensaje-exito");
+            const mensajeError = document.getElementById("mensaje-error");
+            
+            // Validaciones
+            if (!nuevaContraseña || !confirmarContraseña) {
+                mensajeError.textContent = "Por favor completa ambos campos";
+                mensajeError.style.display = "block";
                 return;
             }
-
+            
+            if (nuevaContraseña !== confirmarContraseña) {
+                mensajeError.textContent = "Las contraseñas no coinciden";
+                mensajeError.style.display = "block";
+                return;
+            }
+            
+            // Validar requisitos de contraseña
+            const regex = /^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+            if (!regex.test(nuevaContraseña)) {
+                mensajeError.textContent = "La contraseña debe tener al menos 8 caracteres, una mayúscula, un número y un carácter especial";
+                mensajeError.style.display = "block";
+                return;
+            }
+            
             try {
                 const response = await fetch("/cambiar_contraseña", {
                     method: "POST",
@@ -214,41 +416,50 @@
                         nueva_contraseña: nuevaContraseña,
                     }),
                 });
-
+                
                 const data = await response.json();
-
+                
                 if (response.ok) {
-                    alert(data.message);
-                    toggleChangePasswordForm(); // Ocultar el formulario después de cambiar la contraseña
+                    mensajeExito.textContent = data.message || "Contraseña cambiada con éxito";
+                    mensajeExito.style.display = "block";
+                    mensajeError.style.display = "none";
+                    
+                    // Limpiar campos y ocultar formulario después de 2 segundos
+                    setTimeout(() => {
+                        document.getElementById("nuevaContraseña").value = "";
+                        document.getElementById("confirmarContraseña").value = "";
+                        togglePasswordForm();
+                        hideMessages();
+                    }, 2000);
                 } else {
-                    alert(data.error || "Error al cambiar la contraseña.");
+                    mensajeError.textContent = data.error || "Error al cambiar la contraseña";
+                    mensajeError.style.display = "block";
                 }
             } catch (error) {
-                alert("Error de conexión.");
+                mensajeError.textContent = "Error de conexión con el servidor";
+                mensajeError.style.display = "block";
             }
         }
-    </script>
-    <script>
-        // Función para cerrar la sesión del usuario por inactividad.
+        
+        // Función para cerrar la sesión por inactividad
         let inactivityTime = function () {
             let time;
             window.onload = resetTimer;
             document.onmousemove = resetTimer;
             document.onkeypress = resetTimer;
-
+            
             function logout() {
                 alert("Tu sesión ha sido cerrada por inactividad.");
                 window.location.href = "{{ url_for('logout') }}";
             }
-
+            
             function resetTimer() {
                 clearTimeout(time);
-                time = setTimeout(logout, 60000); // 30000 ms = 30 segundos, // 180000 ms = 3 minutos
+                time = setTimeout(logout, 60000); // 1 minuto de inactividad
             }
         };
-
+        
         inactivityTime();
     </script>
-
 </body>
 </html>

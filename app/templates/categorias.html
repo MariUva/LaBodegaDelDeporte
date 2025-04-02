@@ -671,6 +671,8 @@
             
             // Actualizar carrito
             actualizarCarrito();
+            // Llamar a esta función cada vez que el carrito cambie
+            actualizarContadorCarrito();
         }
         
         // Función para actualizar el carrito
@@ -713,6 +715,7 @@
             
             // Actualizar contador
             cartCount.textContent = cantidadTotal;
+            actualizarContadorCarrito();
         }
         
         // Función para eliminar del carrito
@@ -737,9 +740,21 @@
 
                 // Actualizar el carrito
                 actualizarCarrito();
+                // Llamar a esta función cada vez que el carrito cambie
+                actualizarContadorCarrito();
             }
         }
         
+        document.addEventListener("DOMContentLoaded", function() {
+        // Cargar carrito desde localStorage
+        carrito = JSON.parse(localStorage.getItem("carrito")) || [];
+        
+        // Actualizar contador inicial
+        actualizarContadorCarrito();
+        
+        // ... resto de tu código de inicialización ...
+        });
+
         // Funciones para mostrar mensajes
         function mostrarMensajeExito() {
             const mensaje = document.getElementById("mensaje-exito");
@@ -757,6 +772,12 @@
             }, 3000);
         }
         
+        // Actualizar contador del carrito
+        function actualizarContadorCarrito() {
+            const contador = document.getElementById("contador-productos");
+            contador.textContent = carrito.reduce((total, producto) => total + producto.cantidad, 0);
+        }
+
         // Función para filtrar productos
         function filtrarProductos() {
             const categoria = document.getElementById("categoria").value;
@@ -861,9 +882,28 @@
         // Botón de pagar
         document.getElementById("btn-pagar").addEventListener("click", function() {
             if (carrito.length === 0) {
-                alert("El carrito está vacío");
+            alert("El carrito está vacío");
             } else {
-                window.location.href = this.dataset.url;
+            // Guardar el carrito en la sesión del servidor
+                fetch('/actualizar_carrito', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({carrito: carrito})
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    window.location.href = this.dataset.url;
+                } else {
+                    alert("Error al guardar el carrito");
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert("Error al conectar con el servidor");
+            });
             }
         });
 
