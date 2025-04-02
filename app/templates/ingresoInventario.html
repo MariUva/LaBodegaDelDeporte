@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ingreso de Inventario</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <h1>Ingreso de Inventario</h1>
+    <form action="/ingreso-inventario" method="POST" enctype="multipart/form-data">
+        <label for="nombre">Nombre del Producto:</label>
+        <input type="text" id="nombre" name="nombre" required>
+        
+        <label for="descripcion">Descripción:</label>
+        <textarea id="descripcion" name="descripcion"></textarea>
+        
+        <label for="precio">Precio:</label>
+        <input type="number" id="precio" name="precio" step="0.01" required>
+        
+        <label for="stock">Stock:</label>
+        <input type="number" id="stock" name="stock" required>
+        
+        <label for="lote">Lote:</label>
+        <input type="text" id="lote" name="lote" required>
+        
+        <label for="categoria">Categoría:</label>
+        <select id="categoria" name="categoria_id" required>
+            <option value="1">Balones</option>
+            <option value="2">Ropa de Hombre</option>
+            <option value="3">Tenis</option>
+            <option value="4">Ropa de Mujer</option>
+        </select>
+        
+        <label for="marca">Marca:</label>
+        <select id="marca" name="marca_id" required>
+            {% for marca in marcas %}
+            <option value="{{ marca.id }}">{{ marca.nombre }}</option>
+            {% endfor %}
+        </select>
+        
+        <label for="imagen">Imagen del Producto:</label>
+        <input type="file" id="imagen" name="imagen" accept="image/*" required>
+        
+        <label for="verificado">Producto Verificado (en buen estado y correcto):</label>
+        <input type="checkbox" id="verificado" name="verificado">
+        
+        <button type="submit">Ingresar Producto</button>
+    </form>
+</body>
+</html>

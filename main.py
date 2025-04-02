@@ -42,7 +42,8 @@ class Usuario(db.Model):
     apellidos = db.Column(db.String(50), nullable=False)
     correo = db.Column(db.String(100), unique=True, nullable=False)
     contraseña = db.Column(db.String(255), nullable=False)
-    es_admin = db.Column(db.Boolean, default=False)  
+    es_admin = db.Column(db.Boolean, default=False) 
+    es_auxbodega = db.Column(db.Boolean, default=False) 
 
 class Producto(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -53,6 +54,10 @@ class Producto(db.Model):
     imagen = db.Column(db.String(255))
     categoria_id = db.Column(db.Integer, db.ForeignKey('categoria.id'), nullable=False)  # Nueva columna
     marca_id = db.Column(db.Integer, db.ForeignKey('marca.id'), nullable=False)          # Nueva columna
+    lote = db.Column(db.String(50), nullable=False) 
+    verificado = db.Column(db.Boolean, default=False)  
+
+
 
     def to_dict(self):
         return {
@@ -173,13 +178,15 @@ def login():
             session['intentos_fallidos'] = 0
             session['usuario_id'] = user.id
             session['correo'] = user.correo
+            session['es_admin'] = user.es_admin
+            session['es_auxbodega'] = user.es_auxbodega  # Guardar estado de auxbodega en sesión
 
+            # Manejo de redirección según tipo de usuario
             if user.es_admin:
-                # Generar código de verificación
+                # Lógica de verificación en dos pasos para admin
                 codigo_verificacion = str(random.randint(100000, 999999))
                 session['codigo_verificacion'] = codigo_verificacion
 
-                # Enviar código al correo con SendGrid
                 message = Mail(
                     from_email=app.config['MAIL_DEFAULT_SENDER'],
                     to_emails=user.correo,
@@ -192,19 +199,24 @@ def login():
                 except Exception as e:
                     flash('Error al enviar el correo de verificación', 'danger')
 
-                return redirect(url_for('verify'))  # Redirigir a la verificación
+                return redirect(url_for('verify'))
+
+            elif user.es_auxbodega:
+                # Redirigir directamente a ingreso de inventario para auxbodega
+                flash('Inicio de sesión exitoso como Auxiliar de Bodega', 'success')
+                return redirect(url_for('ingreso_inventario'))
 
             else:
+                # Usuario normal
                 flash('Inicio de sesión exitoso', 'success')
-                print("Sesión antes de redirigir:", session)
                 return redirect(url_for('categorias'))
 
-        # Si la autenticación falla, incrementar el contador de intentos
+        # Manejo de intentos fallidos
         session['intentos_fallidos'] += 1
 
         if session['intentos_fallidos'] >= 3:
             flash("Has alcanzado el límite de intentos fallidos. Restablece tu contraseña.", "warning")
-            return redirect(url_for('reset_password'))  # Redirigir a la página de recuperación de contraseña
+            return redirect(url_for('reset_password'))
         else:
             flash(f'Correo o contraseña incorrectos. Intento {session["intentos_fallidos"]}/3', 'danger')
 
@@ -768,11 +780,87 @@ def pago():
     return render_template('pago.html', carrito=carrito, total=total)
 
 
+
+# Ruta de inicio
+@app.route('/')
+def index():
+    if 'usuario_id' in session:
+        usuario = Usuario.query.get(session['usuario_id'])
+        if usuario.es_auxbodega:
+            return redirect(url_for('ingreso_inventario'))
+    return "Bienvenido a la tienda"
+
+
+
 @app.route('/admin_inventario')
 def inventario():
+    if 'usuario_id' not in session or (not session.get('es_admin') and not session.get('es_auxbodega')):
+        flash("Acceso no autorizado", "danger")
+        return redirect(url_for('login'))
+    
     productos = Producto.query.all()
     return render_template('admin_inventario.html', productos=productos)
 
+# Ruta para ingreso de inventario
+@app.route('/ingreso-inventario', methods=['GET', 'POST'])
+def ingreso_inventario():
+    # Verificar autenticación y rol
+    if 'usuario_id' not in session or not session.get('es_auxbodega'):
+        flash("Acceso no autorizado", "danger")
+        return redirect(url_for('login'))
+
+    # Obtener categorías y marcas para los selects
+    categorias = Categoria.query.all()
+    marcas = Marca.query.all()
+
+    if request.method == 'POST':
+        try:
+            # Obtener datos del formulario
+            nombre = request.form.get('nombre')
+            descripcion = request.form.get('descripcion')
+            precio = float(request.form.get('precio'))
+            stock = int(request.form.get('stock'))
+            lote = request.form.get('lote')
+            verificado = request.form.get('verificado') == 'on'
+            categoria_id = int(request.form.get('categoria_id'))
+            marca_id = int(request.form.get('marca_id'))
+            imagen = request.files.get('imagen')
+
+            # Validar campos obligatorios
+            if not all([nombre, precio, stock, lote, categoria_id, marca_id]):
+                flash("Todos los campos son obligatorios", "danger")
+                return redirect(url_for('ingreso_inventario'))
+
+            # Subir imagen a Cloudinary si existe
+            imagen_url = None
+            if imagen:
+                upload_result = cloudinary.uploader.upload(imagen, folder="productos")
+                imagen_url = upload_result.get("secure_url")
+
+            # Crear nuevo producto
+            nuevo_producto = Producto(
+                nombre=nombre,
+                descripcion=descripcion,
+                precio=precio,
+                stock=stock,
+                lote=lote,
+                verificado=verificado,
+                categoria_id=categoria_id,
+                marca_id=marca_id,
+                imagen=imagen_url
+            )
+            
+            db.session.add(nuevo_producto)
+            db.session.commit()
+            
+            flash('Producto ingresado correctamente', 'success')
+            return redirect(url_for('ingreso_inventario'))
+
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error al ingresar producto: {str(e)}', 'danger')
+
+    return render_template('ingresoInventario.html', categorias=categorias, marcas=marcas)
 
 # ========================== EJECUCIÓN ==========================
 if __name__ == "__main__":
