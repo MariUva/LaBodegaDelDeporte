@@ -856,7 +856,7 @@
 
     if (categoria) {
         // Hacer una solicitud al servidor para obtener las marcas de la categoría seleccionada
-        fetch(`/get_marcas?categoria=${encodeURIComponent(categoria)}`)
+        fetch(`/get_marcas_por_categoria?categoria=${encodeURIComponent(categoria)}`)
             .then(response => {
                 if (!response.ok) {
                     throw new Error("Error al obtener las marcas");

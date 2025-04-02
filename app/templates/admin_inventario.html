@@ -282,36 +282,43 @@
     </div>
 </div>
         <script src="{{ url_for('static', filename='js/crear_producto.js') }}"></script>
+        
         <!-- Modal para Editar Producto -->
         <div id="editModal" class="modal">
             <div class="modal-content">
                 <span class="close" onclick="closeEditModal()">&times;</span>
                 <h2>Editar Producto</h2>
-                <form id="editForm">
+                <form id="editForm" enctype="multipart/form-data">
                     <input type="hidden" id="editProductId">
                     <div class="form-group">
                         <label for="editProductName">Nombre:</label>
-                        <input type="text" id="editProductName" required>
+                        <input type="text" id="editProductName" name="nombre" required>
                     </div>
                     <div class="form-group">
                         <label for="editProductDescription">Descripción:</label>
-                        <textarea id="editProductDescription" required></textarea>
+                        <textarea id="editProductDescription" name="descripcion" required></textarea>
                     </div>
                     <div class="form-group">
                         <label for="editProductPrice">Precio:</label>
-                        <input type="number" id="editProductPrice" step="0.01" required>
+                        <input type="number" id="editProductPrice" name="precio" step="0.01" required>
                     </div>
                     <div class="form-group">
                         <label for="editProductStock">Stock:</label>
-                        <input type="number" id="editProductStock" required>
+                        <input type="number" id="editProductStock" name="stock" required>
                     </div>
                     <div class="form-group">
                         <label for="editProductCategory">Categoría:</label>
-                        <input type="text" id="editProductCategory" required>
+                        <select id="editProductCategory" name="categoria_id" required>
+                            <!-- Opciones cargadas dinámicamente -->
+                        </select>
                     </div>
                     <div class="form-group">
                         <label for="editProductBrand">Marca:</label>
-                        <input type="text" id="editProductBrand" required>
+                        <input type="text" id="editProductBrand" name="marca_id" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editProductImage">Imagen:</label>
+                        <input type="file" id="editProductImage" name="imagen" accept="image/*">
                     </div>
                     <button type="submit" class="btn btn-success">Guardar Cambios</button>
                 </form>
@@ -334,11 +341,62 @@
     </div>
 
     <script>
+
+    function loadCategories(selectedCategoryId = null) {
+        fetch('/get_categorias')
+            .then(response => response.json())
+            .then(categories => {
+                const categorySelect = document.getElementById("editProductCategory");
+                categorySelect.innerHTML = categories.map(category => 
+                    `<option value="${category.id}" ${category.id == selectedCategoryId ? 'selected' : ''}>${category.nombre}</option>`
+                ).join('');
+            })
+            .catch(error => console.error("Error al cargar categorías:", error));
+        }
+
+        function loadBrands(selectedBrandId = null) {
+            fetch('/get_marcas?categoria=Deportes')
+            .then(response => response.json())
+            .then(data => {
+        const brandSelect = document.getElementById("brandFilter");
+        brandSelect.innerHTML = data.marcas.map(marca => 
+            `<option value="${marca.id}">${marca.nombre}</option>` // Acceder a la propiedad 'nombre'
+        ).join('');
+    })
+    .catch(error => console.error("Error al cargar marcas:", error));
+        }
+
+        function loadBrandsByCategory(categoryName) {
+            fetch(`/get_marcas_por_categoria?categoria=${encodeURIComponent(categoryName)}`)
+                .then(response => response.json())
+                .then(data => {
+                    const brandSelect = document.getElementById("brandFilter");
+                    brandSelect.innerHTML = data.marcas.map(marca => 
+                        `<option value="${marca.id}">${marca.nombre}</option>`
+                    ).join('');
+        })
+        .catch(error => console.error("Error al cargar marcas por categoría:", error));
+        }
+
+        function loadAllBrands(selectedBrandId = null) {
+            fetch('/get_todas_las_marcas')
+                .then(response => response.json())
+                .then(data => {
+                    const brandSelect = document.getElementById("editProductBrand");
+                    brandSelect.innerHTML = data.map(marca => 
+                        `<option value="${marca.id}" ${marca.id == selectedBrandId ? 'selected' : ''}>${marca.nombre}</option>`
+                    ).join('');
+                })
+                .catch(error => console.error("Error al cargar todas las marcas:", error));
+        }
+
         // Función para cargar los productos desde Flask
         function loadProducts(searchTerm = '') {
     const tableBody = document.querySelector("#productsTable tbody");
     tableBody.innerHTML = '<tr><td colspan="9" class="loading">Cargando productos...</td></tr>';
     
+    
+
     fetch(`/get_productos?search=${encodeURIComponent(searchTerm)}`)
         .then(response => {
             if (!response.ok) {
@@ -409,14 +467,19 @@
         }
 
         // Funciones para el modal de edición
-        function openEditModal(id, name, description, price, stock, category, brand) {
+        function openEditModal(id, name, description, price, stock, categoryId, brandId) {
             document.getElementById("editProductId").value = id;
             document.getElementById("editProductName").value = name;
             document.getElementById("editProductDescription").value = description;
             document.getElementById("editProductPrice").value = price;
             document.getElementById("editProductStock").value = stock;
-            document.getElementById("editProductCategory").value = category;
-            document.getElementById("editProductBrand").value = brand;
+
+            // Cargar categorías y seleccionar la actual
+            loadCategories(categoryId);
+
+            // Cargar marcas y seleccionar la actual
+            loadAllBrands(brandId);
+
             document.getElementById("editModal").style.display = "block";
         }
 
@@ -457,40 +520,41 @@
             });
         }
 
-        document.getElementById("editForm").addEventListener("submit", function(e) {
+        document.getElementById("editForm").addEventListener("submit", function (e) {
             e.preventDefault();
-            
-            const productData = {
-                id: document.getElementById("editProductId").value,
-                nombre: document.getElementById("editProductName").value,
-                descripcion: document.getElementById("editProductDescription").value,
-                precio: parseFloat(document.getElementById("editProductPrice").value),
-                stock: parseInt(document.getElementById("editProductStock").value),
-                categoria: document.getElementById("editProductCategory").value,
-                marca: document.getElementById("editProductBrand").value
-            };
-            
-            fetch('/actualizar_producto', {
+
+            const formData = new FormData();
+            formData.append("producto_id", document.getElementById("editProductId").value);
+            formData.append("nombre", document.getElementById("editProductName").value);
+            formData.append("descripcion", document.getElementById("editProductDescription").value);
+            formData.append("precio", document.getElementById("editProductPrice").value);
+            formData.append("stock", document.getElementById("editProductStock").value);
+            formData.append("categoria_id", document.getElementById("editProductCategory").value);
+            formData.append("marca_id", document.getElementById("editProductBrand").value);
+
+            const imageInput = document.getElementById("editProductImage");
+            if (imageInput.files.length > 0) {
+                formData.append("imagen", imageInput.files[0]);
+            }
+
+            fetch('/editar_producto', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(productData)
+                body: formData,
             })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    alert("Producto actualizado correctamente");
-                    closeEditModal();
-                    loadProducts();
-                } else {
-                    alert("Error al actualizar el producto: " + (data.message || ''));
-                }
-            })
-            .catch(error => {
-                console.error("Error al actualizar producto:", error);
-                alert("Error al actualizar el producto");
-            });
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert("Producto actualizado correctamente");
+                        closeEditModal();
+                        loadProducts();
+                    } else {
+                        alert("Error al actualizar el producto: " + (data.error || ''));
+                    }
+                })
+                .catch(error => {
+                    console.error("Error al actualizar producto:", error);
+                    alert("Error al actualizar el producto");
+                });
         });
 
         // Menú de usuario

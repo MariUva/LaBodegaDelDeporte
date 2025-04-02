@@ -498,7 +498,6 @@ def editar_producto():
     try:
         # Verificar si el contenido es multipart/form-data
         if 'multipart/form-data' not in request.content_type:
-            print("Error: El contenido no es multipart/form-data")
             return jsonify({'success': False, 'error': 'El contenido debe ser multipart/form-data'}), 400
 
         # Obtener los datos del formulario
@@ -511,16 +510,6 @@ def editar_producto():
         marca_id = request.form.get('marca_id')
         imagen = request.files.get('imagen')
 
-        # Imprimir los valores recibidos para depuración
-        print(f"Producto ID: {producto_id}")
-        print(f"Nombre: {nombre}")
-        print(f"Descripción: {descripcion}")
-        print(f"Precio: {precio}")
-        print(f"Stock: {stock}")
-        print(f"Categoría ID: {categoria_id}")
-        print(f"Marca ID: {marca_id}")
-        print(f"Imagen: {imagen}")
-
         # Obtener el producto existente
         producto = Producto.query.get(producto_id)
         if not producto:
@@ -529,35 +518,27 @@ def editar_producto():
         # Actualizar los datos del producto
         producto.nombre = nombre
         producto.descripcion = descripcion
-        producto.precio = precio
-        producto.stock = stock
-        producto.categoria_id = categoria_id
-        producto.marca_id = marca_id
+        producto.precio = float(precio)
+        producto.stock = int(stock)
+        producto.categoria_id = int(categoria_id)
+        producto.marca_id = int(marca_id)
 
         # Si hay una nueva imagen, subirla a Cloudinary
         if imagen:
             try:
                 upload_result = cloudinary.uploader.upload(imagen, folder=f"productos/{producto.id}")
                 producto.imagen = upload_result.get("secure_url")
-                print(f"Imagen subida a Cloudinary: {producto.imagen}")
             except Exception as e:
-                print(f"Error al subir la imagen a Cloudinary: {str(e)}")
-                return jsonify({'success': False, 'error': 'Error al subir la imagen'}), 500
+                return jsonify({'success': False, 'error': f'Error al subir la imagen: {str(e)}'}), 500
 
         # Guardar los cambios en la base de datos
-        try:
-            db.session.commit()
-            print("Producto actualizado y guardado en la base de datos")
-        except Exception as e:
-            print(f"Error al guardar el producto en la base de datos: {str(e)}")
-            return jsonify({'success': False, 'error': 'Error al guardar en la base de datos'}), 500
-
+        db.session.commit()
         return jsonify({'success': True}), 200
 
     except Exception as e:
         app.logger.error(f"Error al editar el producto: {str(e)}", exc_info=True)
         return jsonify({'success': False, 'error': 'Error interno del servidor'}), 500
-    
+        
 @app.route('/get_productos', methods=['GET'])
 def obtener_productos():
     try:
@@ -593,6 +574,35 @@ def obtener_productos():
     except Exception as e:
         app.logger.error(f"Error al obtener productos: {str(e)}", exc_info=True)
         return jsonify({'error': 'Error interno del servidor'}), 500
+    
+@app.route('/get_categorias', methods=['GET'])
+def get_categorias():
+    try:
+        categorias = Categoria.query.all()
+        return jsonify([categoria.to_dict() for categoria in categorias])
+    except Exception as e:
+        app.logger.error(f"Error al obtener categorías: {str(e)}", exc_info=True)
+        return jsonify({'error': 'Error interno del servidor'}), 500
+
+@app.route('/get_marcas_por_categoria', methods=['GET'])
+def get_marcas():
+    categoria_nombre = request.args.get('categoria')  # Obtener el nombre de la categoría desde los parámetros
+    categoria = Categoria.query.filter_by(nombre=categoria_nombre).first()  # Buscar la categoría por nombre
+
+    if categoria:
+        marcas = [marca.nombre for marca in categoria.marcas]  # Obtener las marcas asociadas
+        return jsonify({"marcas": marcas})
+    else:
+        return jsonify({"marcas": []})  # Si no se encuentra la categoria
+    
+@app.route('/get_todas_las_marcas', methods=['GET'])
+def get_todas_las_marcas():
+    try:
+        marcas = Marca.query.all()
+        return jsonify([marca.to_dict() for marca in marcas])
+    except Exception as e:
+        app.logger.error(f"Error al obtener todas las marcas: {str(e)}", exc_info=True)
+        return jsonify({'error': 'Error interno del servidor'}), 500
 
 @app.route('/delete_producto/<int:product_id>', methods=['POST'])
 def delete_producto(product_id):
@@ -622,18 +632,6 @@ def delete_producto(product_id):
     except Exception as e:
         app.logger.error(f"Error al eliminar producto: {str(e)}", exc_info=True)
         return jsonify({"success": False, "error": "Error interno del servidor"}), 500
-
-
-@app.route('/get_marcas')
-def get_marcas():
-    categoria_nombre = request.args.get('categoria')  # Obtener el nombre de la categoría desde los parámetros
-    categoria = Categoria.query.filter_by(nombre=categoria_nombre).first()  # Buscar la categoría por nombre
-
-    if categoria:
-        marcas = [marca.nombre for marca in categoria.marcas]  # Obtener las marcas asociadas
-        return jsonify({"marcas": marcas})
-    else:
-        return jsonify({"marcas": []})  # Si no se encuentra la catego
 
 @app.route('/filtrar_productos')
 def filtrar_productos():
