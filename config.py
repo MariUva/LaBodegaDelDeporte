@@ -17,7 +17,7 @@ class Config:
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
     # Configuración de seguridad
-    SECRET_KEY = os.getenv("SECRET_KEY", "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")
+    SECRET_KEY = os.getenv("SECRET_KEY", "SENDGRID_API_KEY")
 
     # Configuración de correo (SMTP)
     #MAIL_SERVER = os.getenv("MAIL_SERVER", "smtp.gmail.com")  # Servidor SMTP (por defecto Gmail)
