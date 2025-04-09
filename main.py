@@ -173,13 +173,20 @@ def login():
         user = Usuario.query.filter_by(correo=correo).first()
 
         if user and check_password_hash(user.contraseña, contraseña):
-            # Reiniciar intentos fallidos al iniciar sesión correctamente
-            session.permanent = True
+            session.clear()
+            # Vaciar el carrito ANTES de iniciar sesión
+           
+            session['carrito'] = []
+            session.modified = True
+           
+           # Reiniciar intentos fallidos al iniciar sesión correctamente
+            session.permanent = False
             session['intentos_fallidos'] = 0
             session['usuario_id'] = user.id
             session['correo'] = user.correo
             session['es_admin'] = user.es_admin
             session['es_auxbodega'] = user.es_auxbodega  # Guardar estado de auxbodega en sesión
+            session.modified = True
 
             # Manejo de redirección según tipo de usuario
             if user.es_admin:
@@ -319,6 +326,9 @@ def perfil():
 # Ruta para cerrar sesión, limpiando la sesión del usuario y redirigiéndolo a la página de inicio.
 @app.route('/logout')
 def logout():
+
+    # Vaciar el carrito al cerrar sesión también
+    session.pop('carrito', None)
     session.clear()
     flash("Has cerrado sesión", "info")
     return redirect(url_for('home'))

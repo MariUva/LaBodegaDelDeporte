@@ -975,5 +975,20 @@
     </script>
     <!-- SDK de PayPal -->
     <script src="https://www.paypal.com/sdk/js?client-id=TUSANDBOX_CLIENT_ID"></script>
+
+    <!-- Al final de categorias.html, antes de </body> -->
+    <script>
+        // Verificar al cargar la página si hay un usuario pero no carrito
+        document.addEventListener("DOMContentLoaded", function() {
+            // Si hay sesión (usuario_id en sessionStorage) pero no carrito en localStorage, inicializarlo vacío
+            if (sessionStorage.getItem('usuario_id') && !localStorage.getItem('carrito')) {
+                localStorage.setItem('carrito', JSON.stringify([]));
+            }
+            
+            // Resto de tu inicialización JS (si tienes más lógica al cargar la página)
+        });
+    </script>
+
+
 </body>
 </html>
