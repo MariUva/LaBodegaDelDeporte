@@ -56,7 +56,7 @@ class Producto(db.Model):
     marca_id = db.Column(db.Integer, db.ForeignKey('marca.id'), nullable=False)          # Nueva columna
     lote = db.Column(db.String(50), nullable=False) 
     verificado = db.Column(db.Boolean, default=False)  
-
+    activo = db.Column(db.Boolean, default=True, nullable=False)  # Nuevo campo
 
 
     def to_dict(self):
@@ -558,9 +558,10 @@ def obtener_productos():
         categoria_id = request.args.get('categoria_id', type=int)
         marca_id = request.args.get('marca_id', type=int)
         
-        query = db.session.query(Producto)
+        # Filtro base para solo productos activos
+        query = Producto.query.filter_by(activo=True)
         
-        # Filtros
+        # Resto de filtros...
         if search_term:
             query = query.filter(
                 db.or_(
@@ -578,8 +579,6 @@ def obtener_productos():
             query = query.filter_by(marca_id=marca_id)
         
         productos = query.all()
-        
-        # Usar el método to_dict() que hemos definido
         productos_json = [p.to_dict() for p in productos]
         return jsonify(productos_json)
         
@@ -619,7 +618,8 @@ def get_todas_las_marcas():
 @app.route('/delete_producto/<int:product_id>', methods=['POST'])
 def delete_producto(product_id):
     """
-    Elimina un producto de la base de datos y, si tiene imagen, también la borra de Cloudinary.
+    Realiza un borrado lógico del producto (lo marca como inactivo) en lugar de eliminarlo físicamente.
+    La imagen en Cloudinary se mantiene por si el producto se reactiva en el futuro.
     """
     try:
         producto = Producto.query.get(product_id)
@@ -627,23 +627,24 @@ def delete_producto(product_id):
         if not producto:
             return jsonify({"success": False, "error": "Producto no encontrado"}), 404
 
-        # Si el producto tiene una imagen, eliminarla de Cloudinary
-        if producto.imagen:
-            try:
-                public_id = producto.imagen.split("/")[-1].split(".")[0]
-                cloudinary.uploader.destroy(public_id)
-            except Exception as e:
-                app.logger.error(f"Error al eliminar imagen de Cloudinary: {str(e)}")
-
-        # Eliminar el producto de la base de datos
-        db.session.delete(producto)
+        # En lugar de eliminar, marcamos el producto como inactivo
+        producto.activo = False
         db.session.commit()
 
-        return jsonify({"success": True, "message": "Producto eliminado correctamente"})
+        return jsonify({
+            "success": True, 
+            "message": "Producto ocultado correctamente (borrado lógico)",
+            "product_id": product_id
+        })
 
     except Exception as e:
-        app.logger.error(f"Error al eliminar producto: {str(e)}", exc_info=True)
-        return jsonify({"success": False, "error": "Error interno del servidor"}), 500
+        app.logger.error(f"Error al ocultar producto: {str(e)}", exc_info=True)
+        db.session.rollback()
+        return jsonify({
+            "success": False, 
+            "error": "Error interno del servidor al intentar ocultar el producto"
+        }), 500
+    
 
 @app.route('/filtrar_productos')
 def filtrar_productos():
@@ -801,7 +802,6 @@ def inventario():
     productos = Producto.query.all()
     return render_template('admin_inventario.html', productos=productos)
 
-# Ruta para ingreso de inventario
 @app.route('/ingreso-inventario', methods=['GET', 'POST'])
 def ingreso_inventario():
     # Verificar autenticación y rol
@@ -809,51 +809,127 @@ def ingreso_inventario():
         flash("Acceso no autorizado", "danger")
         return redirect(url_for('login'))
 
-    if request.method == 'POST':
+    if request.method == 'GET':
+        marcas = Marca.query.all()
+        categorias = Categoria.query.all()  # Asegúrate de incluir las categorías
+        return render_template('ingresoInventario.html', marcas=marcas, categorias=categorias)
+
+    # Si es POST
+    try:
+        app.logger.info("Headers: %s", request.headers)
+        app.logger.info("Content-Type: %s", request.content_type)
+        
+        # Verificar si hay datos multipart
+        if not request.files and not request.form:
+            flash("Error: No se recibieron datos del formulario", "danger")
+            return redirect(url_for('ingreso_inventario'))
+
+        # Obtener datos del formulario con valores por defecto más seguros
+        nombre = request.form.get('nombre', '').strip()
+        descripcion = request.form.get('descripcion', '').strip()
+        precio = request.form.get('precio', '0').strip()
+        stock = request.form.get('stock', '0').strip()
+        lote = request.form.get('lote', '').strip()
+        verificado = request.form.get('verificado', 'off') == 'on'
+        categoria_id = request.form.get('categoria_id', '0').strip()
+        marca_id = request.form.get('marca_id', '0').strip()
+        imagen = request.files.get('imagen')
+
+        # Depuración detallada
+        app.logger.info("Datos recibidos - Nombre: %s, Precio: %s, Stock: %s, Categoría: %s, Marca: %s, Imagen: %s",
+                       nombre, precio, stock, categoria_id, marca_id, 'Sí' if imagen else 'No')
+
+        # Validar campos obligatorios
+        required_fields = {
+            'nombre': nombre,
+            'precio': precio,
+            'stock': stock,
+            'categoria_id': categoria_id,
+            'marca_id': marca_id,
+            'imagen': imagen
+        }
+
+        missing_fields = [field for field, value in required_fields.items() if not value]
+        
+        if missing_fields:
+            flash(f"Error: Faltan campos obligatorios: {', '.join(missing_fields)}", "danger")
+            return redirect(url_for('ingreso_inventario'))
+
+        # Validar tipos de datos
         try:
-            # Obtener datos del formulario
-            nombre = request.form.get('nombre')
-            descripcion = request.form.get('descripcion')
-            precio = float(request.form.get('precio'))
-            stock = int(request.form.get('stock'))
-            lote = request.form.get('lote')
-            verificado = 'verificado' in request.form  # True si el checkbox estaba marcado
-            categoria_id = int(request.form.get('categoria_id'))
-            marca_id = int(request.form.get('marca_id'))
-            imagen = request.files.get('imagen')
-
-            # Subir imagen a Cloudinary
-            upload_result = cloudinary.uploader.upload(imagen, folder="productos")
-            imagen_url = upload_result.get("secure_url")
-
-            # Crear nuevo producto
-            nuevo_producto = Producto(
-                nombre=nombre,
-                descripcion=descripcion,
-                precio=precio,
-                stock=stock,
-                lote=lote,
-                verificado=verificado,
-                categoria_id=categoria_id,
-                marca_id=marca_id,
-                imagen=imagen_url
-            )
-            
-            db.session.add(nuevo_producto)
-            db.session.commit()
-            
-            flash('Producto ingresado correctamente', 'success')
+            precio = float(precio)
+            stock = int(stock)
+            categoria_id = int(categoria_id)
+            marca_id = int(marca_id)
+        except ValueError as e:
+            flash(f"Error en los datos numéricos: {str(e)}", "danger")
             return redirect(url_for('ingreso_inventario'))
 
+        # Subir imagen a Cloudinary
+        try:
+            if imagen and imagen.filename != '':
+                upload_result = cloudinary.uploader.upload(imagen, folder="productos")
+                imagen_url = upload_result.get("secure_url")
+                app.logger.info("Imagen subida correctamente: %s", imagen_url)
+            else:
+                flash("Error: No se proporcionó una imagen válida", "danger")
+                return redirect(url_for('ingreso_inventario'))
         except Exception as e:
-            db.session.rollback()
-            flash(f'Error al ingresar producto: {str(e)}', 'danger')
+            app.logger.error("Error al subir imagen: %s", str(e), exc_info=True)
+            flash(f"Error al subir la imagen: {str(e)}", "danger")
             return redirect(url_for('ingreso_inventario'))
 
-    # Si es GET, mostrar el formulario
-    marcas = Marca.query.all()
-    return render_template('ingresoInventario.html', marcas=marcas)
+        # Crear nuevo producto
+        nuevo_producto = Producto(
+            nombre=nombre,
+            descripcion=descripcion,
+            precio=precio,
+            stock=stock,
+            lote=lote,
+            verificado=verificado,
+            categoria_id=categoria_id,
+            marca_id=marca_id,
+            imagen=imagen_url
+        )
+        
+        db.session.add(nuevo_producto)
+        db.session.commit()
+        
+        flash('Producto ingresado correctamente', 'success')
+        return redirect(url_for('ingreso_inventario'))
+
+    except Exception as e:
+        db.session.rollback()
+        app.logger.error("Error crítico: %s", str(e), exc_info=True)
+        flash(f'Error inesperado al ingresar producto: {str(e)}', 'danger')
+        return redirect(url_for('ingreso_inventario'))
     
+@app.route('/restore_producto/<int:product_id>', methods=['POST'])
+def restore_producto(product_id):
+    try:
+        producto = Producto.query.get(product_id)
+        
+        if not producto:
+            return jsonify({"success": False, "error": "Producto no encontrado"}), 404
+
+        producto.activo = True
+        db.session.commit()
+
+        return jsonify({
+            "success": True, 
+            "message": "Producto restaurado correctamente",
+            "product_id": product_id
+        })
+
+    except Exception as e:
+        app.logger.error(f"Error al restaurar producto: {str(e)}", exc_info=True)
+        db.session.rollback()
+        return jsonify({
+            "success": False, 
+            "error": "Error interno del servidor al intentar restaurar el producto"
+        }), 500
+
+
 # ========================== EJECUCIÓN ==========================
 if __name__ == "__main__":
     debug_mode = os.getenv("FLASK_DEBUG", "False").lower() == "true"
