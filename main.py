@@ -56,7 +56,7 @@ class Producto(db.Model):
     marca_id = db.Column(db.Integer, db.ForeignKey('marca.id'), nullable=False)          # Nueva columna
     lote = db.Column(db.String(50), nullable=False) 
     verificado = db.Column(db.Boolean, default=False)  
-    activo = db.Column(db.Boolean, default=True, nullable=False)  # Nuevo campo
+    activo = db.Column(db.Boolean, default=True, nullable=False)
 
 
     def to_dict(self):
@@ -558,10 +558,9 @@ def obtener_productos():
         categoria_id = request.args.get('categoria_id', type=int)
         marca_id = request.args.get('marca_id', type=int)
         
-        # Filtro base para solo productos activos
-        query = Producto.query.filter_by(activo=True)
+        query = db.session.query(Producto)
         
-        # Resto de filtros...
+        # Filtros
         if search_term:
             query = query.filter(
                 db.or_(
@@ -579,6 +578,8 @@ def obtener_productos():
             query = query.filter_by(marca_id=marca_id)
         
         productos = query.all()
+        
+        # Usar el método to_dict() que hemos definido
         productos_json = [p.to_dict() for p in productos]
         return jsonify(productos_json)
         
@@ -618,8 +619,7 @@ def get_todas_las_marcas():
 @app.route('/delete_producto/<int:product_id>', methods=['POST'])
 def delete_producto(product_id):
     """
-    Realiza un borrado lógico del producto (lo marca como inactivo) en lugar de eliminarlo físicamente.
-    La imagen en Cloudinary se mantiene por si el producto se reactiva en el futuro.
+    Elimina un producto de la base de datos y, si tiene imagen, también la borra de Cloudinary.
     """
     try:
         producto = Producto.query.get(product_id)
@@ -627,24 +627,23 @@ def delete_producto(product_id):
         if not producto:
             return jsonify({"success": False, "error": "Producto no encontrado"}), 404
 
-        # En lugar de eliminar, marcamos el producto como inactivo
-        producto.activo = False
+        # Si el producto tiene una imagen, eliminarla de Cloudinary
+        if producto.imagen:
+            try:
+                public_id = producto.imagen.split("/")[-1].split(".")[0]
+                cloudinary.uploader.destroy(public_id)
+            except Exception as e:
+                app.logger.error(f"Error al eliminar imagen de Cloudinary: {str(e)}")
+
+        # Eliminar el producto de la base de datos
+        db.session.delete(producto)
         db.session.commit()
 
-        return jsonify({
-            "success": True, 
-            "message": "Producto ocultado correctamente (borrado lógico)",
-            "product_id": product_id
-        })
+        return jsonify({"success": True, "message": "Producto eliminado correctamente"})
 
     except Exception as e:
-        app.logger.error(f"Error al ocultar producto: {str(e)}", exc_info=True)
-        db.session.rollback()
-        return jsonify({
-            "success": False, 
-            "error": "Error interno del servidor al intentar ocultar el producto"
-        }), 500
-    
+        app.logger.error(f"Error al eliminar producto: {str(e)}", exc_info=True)
+        return jsonify({"success": False, "error": "Error interno del servidor"}), 500
 
 @app.route('/filtrar_productos')
 def filtrar_productos():
@@ -903,7 +902,7 @@ def ingreso_inventario():
         app.logger.error("Error crítico: %s", str(e), exc_info=True)
         flash(f'Error inesperado al ingresar producto: {str(e)}', 'danger')
         return redirect(url_for('ingreso_inventario'))
-    
+
 @app.route('/restore_producto/<int:product_id>', methods=['POST'])
 def restore_producto(product_id):
     try:
@@ -928,8 +927,7 @@ def restore_producto(product_id):
             "success": False, 
             "error": "Error interno del servidor al intentar restaurar el producto"
         }), 500
-
-
+    
 # ========================== EJECUCIÓN ==========================
 if __name__ == "__main__":
     debug_mode = os.getenv("FLASK_DEBUG", "False").lower() == "true"

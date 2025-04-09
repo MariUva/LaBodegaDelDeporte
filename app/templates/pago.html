@@ -314,16 +314,24 @@
             // Simular procesamiento de pago
             alert("¡Pago procesado con éxito!");
             
-            // Limpiar el carrito
+            // Limpiar el carrito y luego redirigir
             fetch('/limpiar_carrito', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 }
+            })
+            .then(response => {
+                if (response.ok) {
+                    window.location.href = "/categorias";  // <- Ruta válida en Flask
+                } else {
+                    alert("Error al limpiar el carrito.");
+                }
+            })
+            .catch(error => {
+                console.error("Error al procesar el pago:", error);
+                alert("Ocurrió un error al procesar el pago.");
             });
-            
-            // Redirigir a la página de confirmación
-            window.location.href = "/confirmacion";
         });
         
         // Configurar botón de PayPal
