@@ -57,7 +57,8 @@ class Producto(db.Model):
     lote = db.Column(db.String(50), nullable=False) 
     verificado = db.Column(db.Boolean, default=False)  
     activo = db.Column(db.Boolean, default=True, nullable=False)
-
+    ubicacion_id = db.Column(db.Integer, db.ForeignKey('ubicacion_bodega.id'), nullable=True)
+    ubicacion = db.relationship('UbicacionBodega', backref=db.backref('productos', lazy=True))
 
     def to_dict(self):
         return {
@@ -70,7 +71,9 @@ class Producto(db.Model):
             'categoria': self.categoria.to_dict() if self.categoria else None,
             'categoria_id': self.categoria_id,
             'marca': self.marca.to_dict() if self.marca else None,
-            'marca_id': self.marca_id
+            'marca_id': self.marca_id,
+            'ubicacion': self.ubicacion.to_dict() if self.ubicacion else None,
+            'ubicacion_id': self.ubicacion_id
         }    
 
 
@@ -111,6 +114,20 @@ class Marca(db.Model):
             data['categorias'] = [c.to_dict() for c in self.categorias]
         return data
 
+class UbicacionBodega(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    categoria_id = db.Column(db.Integer, db.ForeignKey('categoria.id'), nullable=False, unique=True)
+    estante = db.Column(db.String(50), nullable=False)
+
+    categoria = db.relationship('Categoria', backref=db.backref('ubicacion', uselist=False))
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'categoria_id': self.categoria_id,
+            'categoria': self.categoria.nombre if self.categoria else None,
+            'estante': self.estante
+        }
 
 # ========================== RUTAS ==========================
 
@@ -856,7 +873,8 @@ def ingreso_inventario():
     if request.method == 'GET':
         marcas = Marca.query.all()
         categorias = Categoria.query.all()  # Asegúrate de incluir las categorías
-        return render_template('ingresoInventario.html', marcas=marcas, categorias=categorias)
+        ubicaciones = db.session.query(UbicacionBodega).all()  # Recupera las ubicaciones desde la base de datos
+        return render_template('ingresoInventario.html', marcas=marcas, categorias=categorias, ubicaciones=ubicaciones)
 
     # Si es POST
     try:
@@ -877,11 +895,20 @@ def ingreso_inventario():
         verificado = request.form.get('verificado', 'off') == 'on'
         categoria_id = request.form.get('categoria_id', '0').strip()
         marca_id = request.form.get('marca_id', '0').strip()
+        estante = request.form.get('estante', '').strip()  # Ubicación seleccionada en el combobox
         imagen = request.files.get('imagen')
 
+        # Buscar el id de la ubicación correspondiente al estante seleccionado
+        ubicacion = UbicacionBodega.query.filter_by(estante=estante).first()
+        if not ubicacion:
+            flash("Error: La ubicación seleccionada no existe", "danger")
+            return redirect(url_for('ingreso_inventario'))
+
+        ubicacion_id = ubicacion.id  # Obtener el id de la ubicación
+
         # Depuración detallada
-        app.logger.info("Datos recibidos - Nombre: %s, Precio: %s, Stock: %s, Categoría: %s, Marca: %s, Imagen: %s",
-                       nombre, precio, stock, categoria_id, marca_id, 'Sí' if imagen else 'No')
+        app.logger.info("Datos recibidos - Nombre: %s, Precio: %s, Stock: %s, Categoría: %s, Marca: %s, Imagen: %s, Ubicación: %s",
+                       nombre, precio, stock, categoria_id, marca_id, 'Sí' if imagen else 'No', ubicacion_id)
 
         # Validar campos obligatorios
         required_fields = {
@@ -890,6 +917,7 @@ def ingreso_inventario():
             'stock': stock,
             'categoria_id': categoria_id,
             'marca_id': marca_id,
+            'estante': estante,
             'imagen': imagen
         }
 
@@ -923,7 +951,7 @@ def ingreso_inventario():
             flash(f"Error al subir la imagen: {str(e)}", "danger")
             return redirect(url_for('ingreso_inventario'))
 
-        # Crear nuevo producto
+        # Crear nuevo producto con el id de la ubicación
         nuevo_producto = Producto(
             nombre=nombre,
             descripcion=descripcion,
@@ -933,6 +961,7 @@ def ingreso_inventario():
             verificado=verificado,
             categoria_id=categoria_id,
             marca_id=marca_id,
+            ubicacion_id=ubicacion_id,  # Usar ubicacion_id
             imagen=imagen_url
         )
         
