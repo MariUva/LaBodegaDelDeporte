@@ -1,11 +1,12 @@
 import sys
 import pytest
 from pathlib import Path
-from app import create_app, db  # Asegúrate de que 'db' esté importado desde la app
 
 # Agrega el directorio raíz del proyecto al PYTHONPATH
-root_dir = Path(__file__).parent.parent
+root_dir = Path(__file__).resolve().parent.parent
 sys.path.append(str(root_dir))
+
+from app import create_app, db  # Asegúrate de que 'db' esté importado desde la app
 
 @pytest.fixture
 def client():
