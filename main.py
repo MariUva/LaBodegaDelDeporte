@@ -954,8 +954,7 @@ def metrics():
 
 
 # ========================== EJECUCIÓN ==========================
-
 if __name__ == "__main__":
     debug_mode = os.getenv("FLASK_DEBUG", "False").lower() == "true"
-    port = int(os.getenv("PORT", 8000))
-    app.run(host="0.0.0.0", port=port, debug=debug_mode)
+    app.run(host="0.0.0.0", port=8000, debug=debug_mode)
+
