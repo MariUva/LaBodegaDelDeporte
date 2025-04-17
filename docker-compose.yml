@@ -5,7 +5,7 @@ services:
     build: .
     container_name: bodega_app
     ports:
-      - "5000:5000"
+      - "8000:8000"
     volumes:
       - .:/app
     environment:
