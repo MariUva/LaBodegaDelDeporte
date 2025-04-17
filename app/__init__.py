@@ -8,6 +8,13 @@ migrate = Migrate()
 
 def create_app():
     app = Flask(__name__)
+
+    # Configuración para producción
+    app.config['DEBUG'] = False
+    app.config['TESTING'] = False
+    app.config['ENV'] = 'production'
+
+
     app.config.from_object(Config)
 
     db.init_app(app)
