@@ -311,21 +311,46 @@
                 return;
             }
             
-            // Simular procesamiento de pago
-            alert("¡Pago procesado con éxito!");
+            // Obtener los productos del carrito desde la sesión
+            const carrito = JSON.parse('{{ carrito | tojson | safe }}');
             
-            // Limpiar el carrito y luego redirigir
-            fetch('/limpiar_carrito', {
+            // Enviar datos al servidor para actualizar stock y procesar pago
+            fetch('/pago', {  // Cambiado de '/procesar_pago' a '/pago'
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                }
+                },
+                body: JSON.stringify({
+                    carrito: carrito,
+                    datos_pago: {
+                        nombre: document.getElementById("nombre").value,
+                        correo: document.getElementById("correo").value,
+                        telefono: document.getElementById("telefono").value,
+                        metodo_pago: metodoPago,
+                        direccion: document.getElementById("direccion").value
+                    }
+                })
             })
-            .then(response => {
-                if (response.ok) {
-                    window.location.href = "/categorias";  // <- Ruta válida en Flask
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert("¡Pago procesado con éxito! Stock actualizado.");
+                    // Limpiar el carrito y redirigir
+                    fetch('/limpiar_carrito', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        }
+                    })
+                    .then(response => {
+                        if (response.ok) {
+                            window.location.href = "/categorias";
+                        } else {
+                            alert("Error al limpiar el carrito.");
+                        }
+                    });
                 } else {
-                    alert("Error al limpiar el carrito.");
+                    alert("Error al procesar el pago: " + data.error);
                 }
             })
             .catch(error => {

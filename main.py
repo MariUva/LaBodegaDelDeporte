@@ -783,11 +783,46 @@ def limpiar_carrito():
         app.logger.error(f"Error al limpiar carrito: {str(e)}")
         return jsonify({'success': False, 'error': str(e)}), 500
 
-@app.route('/pago')
+@app.route('/pago', methods=['GET', 'POST'])
 def pago():
-    carrito = session.get('carrito', [])
-    total = sum(producto['precio'] * producto['cantidad'] for producto in carrito)
-    return render_template('pago.html', carrito=carrito, total=total)
+    if request.method == 'GET':
+        # Mostrar la página de pago
+        carrito = session.get('carrito', [])
+        total = sum(producto['precio'] * producto['cantidad'] for producto in carrito)
+        return render_template('pago.html', carrito=carrito, total=total)
+    
+    elif request.method == 'POST':
+        # Procesar el pago (lo que estaba en /procesar_pago)
+        try:
+            data = request.get_json()
+            carrito = data.get('carrito', [])
+            
+            # Actualizar el stock para cada producto en el carrito
+            for producto_carrito in carrito:
+                producto = Producto.query.get(producto_carrito['id'])
+                if producto:
+                    # Verificar que haya suficiente stock
+                    if producto.stock < producto_carrito['cantidad']:
+                        return jsonify({
+                            'success': False,
+                            'error': f'No hay suficiente stock para el producto {producto.nombre}'
+                        }), 400
+                    
+                    # Actualizar el stock
+                    producto.stock -= producto_carrito['cantidad']
+            
+            # Guardar los cambios en la base de datos
+            db.session.commit()
+            
+            return jsonify({'success': True})
+            
+        except Exception as e:
+            db.session.rollback()
+            app.logger.error(f"Error al procesar pago: {str(e)}", exc_info=True)
+            return jsonify({
+                'success': False,
+                'error': 'Error interno al procesar el pago'
+            }), 500
 
 
 
