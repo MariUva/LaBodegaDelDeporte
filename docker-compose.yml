@@ -46,3 +46,4 @@ volumes:
 
 networks:
   monitoring_net:
+
