@@ -956,10 +956,5 @@ def metrics():
 # ========================== EJECUCIÓN ==========================
 if __name__ == "__main__":
     debug_mode = os.getenv("FLASK_DEBUG", "False").lower() == "true"
-    # Usar un servidor de producción como Waitress si no estás en modo debug
-    if debug_mode:
-        app.run(host="0.0.0.0", port=8000, debug=True)
-    else:
-        # Ejecutar con Waitress para producción
-        from waitress import serve
-        serve(app, host="0.0.0.0", port=8000)
+    app.run(host="0.0.0.0", port=8000, debug=debug_mode)
+
