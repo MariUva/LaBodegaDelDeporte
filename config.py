@@ -37,5 +37,8 @@ class Config:
     CLOUDINARY_API_KEY = os.getenv("CLOUDINARY_API_KEY")
     CLOUDINARY_API_SECRET = os.getenv("CLOUDINARY_API_SECRET")
     
+    
     # Otras configuraciones opcionales
     DEBUG = os.getenv("FLASK_DEBUG", "false").lower() == "true"
+    TESTING = False
+    ENV = 'production'
