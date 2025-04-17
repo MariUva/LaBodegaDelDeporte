@@ -16,6 +16,8 @@ from sendgrid.helpers.mail import Mail
 import cloudinary
 import cloudinary.uploader
 import cloudinary.api
+from prometheus_client import Counter, generate_latest
+from flask import Response
 
 # Configuración de SendGrid
 sg = SendGridAPIClient(os.getenv("SENDGRID_API_KEY"))
@@ -937,7 +939,20 @@ def restore_producto(product_id):
             "success": False, 
             "error": "Error interno del servidor al intentar restaurar el producto"
         }), 500
-    
+
+
+# Métricas personalizadas
+REQUEST_COUNT = Counter('app_request_count', 'Total de peticiones')
+
+@app.before_request
+def before_request():
+    REQUEST_COUNT.inc()
+
+@app.route('/metrics')
+def metrics():
+    return Response(generate_latest(), mimetype='text/plain')
+
+
 # ========================== EJECUCIÓN ==========================
 if __name__ == "__main__":
     debug_mode = os.getenv("FLASK_DEBUG", "False").lower() == "true"
