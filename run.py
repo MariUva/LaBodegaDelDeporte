@@ -1,9 +1,9 @@
 from app import create_app
-import os
 
+"""
+Este archivo es el encargado de ejecutar la aplicación, es decir, es el archivo principal de la aplicación.
+"""
 app = create_app()
 
 if __name__ == "__main__":
-    debug_mode = os.getenv("FLASK_DEBUG", "False").lower() == "true"
-    port = int(os.getenv("PORT", 8000))  # Railway usa PORT, no FLASK_PORT
-    app.run(host="0.0.0.0", port=int(os.getenv("PORT", 8000)), debug=debug_mode)
+    app.run(debug=False)
