@@ -1,9 +1,8 @@
 from app import create_app
+import os
 
-"""
-Este archivo es el encargado de ejecutar la aplicación, es decir, es el archivo principal de la aplicación.
-"""
 app = create_app()
 
 if __name__ == "__main__":
-    app.run(debug=False)
+    debug_mode = os.getenv("FLASK_DEBUG", "False").lower() == "true"
+    app.run(host="0.0.0.0", port=int(os.getenv("PORT", 8000)), debug=debug_mode)
