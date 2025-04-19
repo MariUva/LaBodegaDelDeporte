@@ -73,7 +73,8 @@ class Producto(db.Model):
             'marca': self.marca.to_dict() if self.marca else None,
             'marca_id': self.marca_id,
             'ubicacion': self.ubicacion.to_dict() if self.ubicacion else None,
-            'ubicacion_id': self.ubicacion_id
+            'ubicacion_id': self.ubicacion_id,
+            'activo': self.activo  
         }    
 
 
@@ -159,7 +160,10 @@ def categorias():
         flash("Usuario no encontrado", "danger")
         return redirect(url_for('login'))
 
-    # 🔹 Obtener todas las categorías con sus marcas
+    # Obtener productos activos
+    productos_activos = db_session.query(Producto).filter(Producto.activo == True).all()
+
+    # Obtener todas las categorías con sus marcas
     categorias = db_session.query(Categoria).options(db.joinedload(Categoria.marcas)).all()
 
     if not categorias:
@@ -168,7 +172,7 @@ def categorias():
     # Convertimos la consulta en un diccionario { "Categoria1": ["Marca1", "Marca2"], ... }
     categorias_dict = {categoria.nombre: [marca.nombre for marca in categoria.marcas] for categoria in categorias}
 
-    return render_template("categorias.html", nombre=usuario.nombre, categorias=categorias_dict)
+    return render_template("categorias.html", nombre=usuario.nombre, categorias=categorias_dict, productos=productos_activos)
 
 # Ruta que muestra la página de categorías de deportes con una selección aleatoria de 3 productos.
 @app.route("/categorias/deportes")
@@ -585,9 +589,10 @@ def obtener_productos():
         categoria_id = request.args.get('categoria_id', type=int)
         marca_id = request.args.get('marca_id', type=int)
         
-        query = db.session.query(Producto)
+        # Filtro base para solo productos activos
+        query = db.session.query(Producto).filter(Producto.activo == True)
         
-        # Filtros
+        # Filtros adicionales
         if search_term:
             query = query.filter(
                 db.or_(
@@ -606,9 +611,12 @@ def obtener_productos():
         
         productos = query.all()
         
-        # Usar el método to_dict() que hemos definido
         productos_json = [p.to_dict() for p in productos]
         return jsonify(productos_json)
+        
+    except Exception as e:
+        app.logger.error(f"Error al obtener productos: {str(e)}", exc_info=True)
+        return jsonify({'error': 'Error interno del servidor'}), 500
         
     except Exception as e:
         app.logger.error(f"Error al obtener productos: {str(e)}", exc_info=True)
@@ -681,8 +689,8 @@ def filtrar_productos():
     categoria = Categoria.query.filter_by(nombre=categoria_nombre).first()
     marca = Marca.query.filter_by(nombre=marca_nombre).first()
 
-    # Consulta inicial con join explícito
-    query = Producto.query.join(Categoria).join(Marca)
+    # Consulta inicial con join explícito y filtro por activo=True
+    query = Producto.query.filter(Producto.activo == True).join(Categoria).join(Marca)
 
     if categoria:
         query = query.filter(Producto.categoria_id == categoria.id)
@@ -691,10 +699,6 @@ def filtrar_productos():
 
     productos = query.all()
 
-    # Verificar qué se obtiene en la base de datos
-    for producto in productos:
-        print(f"Producto: {producto.nombre}, Categoría: {producto.categoria.nombre if producto.categoria else 'None'}, Marca: {producto.marca.nombre if producto.marca else 'None'}")
-
     # Convertir los productos a JSON
     productos_json = [{
         "id": producto.id,
@@ -702,9 +706,10 @@ def filtrar_productos():
         "descripcion": producto.descripcion,
         "precio": producto.precio,
         "stock": producto.stock,
-        "imagen": producto.imagen,  # Incluir la URL de la imagen
+        "imagen": producto.imagen,
         "categoria": producto.categoria.nombre if producto.categoria else "Sin categoría",
-        "marca": producto.marca.nombre if producto.marca else "Sin marca"
+        "marca": producto.marca.nombre if producto.marca else "Sin marca",
+        "activo": producto.activo
     } for producto in productos]
 
     return jsonify({"productos": productos_json})
@@ -1002,6 +1007,42 @@ def restore_producto(product_id):
             "error": "Error interno del servidor al intentar restaurar el producto"
         }), 500
     
+@app.route('/get_ubicaciones', methods=['GET'])
+def get_ubicaciones():
+    try:
+        ubicaciones = UbicacionBodega.query.all()
+        return jsonify([ubicacion.to_dict() for ubicacion in ubicaciones])
+    except Exception as e:
+        app.logger.error(f"Error al obtener ubicaciones: {str(e)}", exc_info=True)
+        return jsonify({'error': 'Error interno del servidor'}), 500
+
+@app.route('/toggle_product_status', methods=['POST'])
+def toggle_product_status():
+    try:
+        product_id = request.args.get('id')
+        producto = Producto.query.get(product_id)
+        
+        if not producto:
+            return jsonify({"success": False, "error": "Producto no encontrado"}), 404
+
+        # Cambiar el estado (de True a False o viceversa)
+        producto.activo = not producto.activo
+        db.session.commit()
+
+        return jsonify({
+            "success": True, 
+            "message": "Estado del producto actualizado",
+            "new_status": producto.activo
+        })
+
+    except Exception as e:
+        db.session.rollback()
+        app.logger.error(f"Error al cambiar estado del producto: {str(e)}", exc_info=True)
+        return jsonify({
+            "success": False, 
+            "error": "Error interno del servidor al cambiar el estado del producto"
+        }), 500
+                
 # ========================== EJECUCIÓN ==========================
 if __name__ == "__main__":
     debug_mode = os.getenv("FLASK_DEBUG", "False").lower() == "true"

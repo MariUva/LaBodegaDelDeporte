@@ -233,13 +233,14 @@
                     <th>Marca</th>
                     <th>Stock</th>
                     <th>Ubicación</th>
+                    <th>Activo</th>
                     <th>Imagen</th>
                     <th>Acciones</th>
                 </tr>
             </thead>
             <tbody>
                 <tr>
-                    <td colspan="10" class="loading">Cargando productos...</td>
+                    <td colspan="11" class="loading">Cargando productos...</td>
                 </tr>
             </tbody>
         </table>
@@ -268,16 +269,27 @@
                     </div>
                     <div class="form-group">
                         <label for="productCategory">Categoría:</label>
-                        <input type="text" id="productCategory" name="categoria_id" required>
+                        <select id="productCategory" name="categoria_id" required>
+                            <option value="">Cargando categorías...</option>
+                        </select>
                     </div>
                     <div class="form-group">
                         <label for="productBrand">Marca:</label>
-                        <input type="text" id="productBrand" name="marca_id" required>
+                        <select id="productBrand" name="marca_id" required>
+                            <option value="">Cargando marcas...</option>
+                        </select>
                     </div>
                     <div class="form-group">
                         <label for="productLocation">Ubicación:</label>
                         <select id="productLocation" name="ubicacion_id" required>
-                            <!-- Opciones cargadas dinámicamente -->
+                            <option value="">Cargando ubicaciones...</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="productActive">Activo:</label>
+                        <select id="productActive" name="activo" required>
+                            <option value="1" selected>Sí</option>
+                            <option value="0">No</option>
                         </select>
                     </div>
                     <div class="form-group">
@@ -315,19 +327,26 @@
                     <div class="form-group">
                         <label for="editProductCategory">Categoría:</label>
                         <select id="editProductCategory" name="categoria_id" required>
-                            <!-- Opciones cargadas dinámicamente -->
+                            <option value="">Cargando categorías...</option>
                         </select>
                     </div>
                     <div class="form-group">
                         <label for="editProductBrand">Marca:</label>
                         <select id="editProductBrand" name="marca_id" required>
-                            <!-- Opciones cargadas dinámicamente -->
+                            <option value="">Cargando marcas...</option>
                         </select>
                     </div>
                     <div class="form-group">
                         <label for="editProductLocation">Ubicación:</label>
                         <select id="editProductLocation" name="ubicacion_id" required>
-                            <!-- Opciones cargadas dinámicamente -->
+                            <option value="">Cargando ubicaciones...</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="editProductActive">Activo:</label>
+                        <select id="editProductActive" name="activo" required>
+                            <option value="1">Sí</option>
+                            <option value="0">No</option>
                         </select>
                     </div>
                     <div class="form-group">
@@ -338,98 +357,196 @@
                 </form>
             </div>
         </div>
-
-        <!-- Modal para Eliminar Producto -->
-        <div id="deleteModal" class="modal">
-            <div class="modal-content">
-                <span class="close" onclick="closeDeleteModal()">&times;</span>
-                <h2>Confirmar Eliminación</h2>
-                <p>¿Estás seguro de que deseas eliminar este producto?</p>
-                <input type="hidden" id="deleteProductId">
-                <div style="text-align: right;">
-                    <button onclick="closeDeleteModal()" class="btn">Cancelar</button>
-                    <button onclick="confirmDelete()" class="btn btn-danger">Eliminar</button>
-                </div>
-            </div>
-        </div>
     </div>
 
     <script>
+        // Función para escapar HTML
+        function escapeHtml(unsafe) {
+            if (!unsafe) return '';
+            return unsafe.toString()
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        // Función para cargar categorías
         function loadCategories(selectedCategoryId = null) {
-            fetch('/get_categorias')
-                .then(response => response.json())
+            return fetch('/get_categorias')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Error al cargar categorías');
+                    }
+                    return response.json();
+                })
                 .then(categories => {
-                    const categorySelect = document.getElementById("editProductCategory");
-                    const createCategorySelect = document.getElementById("productCategory");
-                    categorySelect.innerHTML = categories.map(category => 
-                        `<option value="${category.id}" ${category.id == selectedCategoryId ? 'selected' : ''}>${category.nombre}</option>`
-                    ).join('');
-                    createCategorySelect.innerHTML = categories.map(category => 
-                        `<option value="${category.id}">${category.nombre}</option>`
-                    ).join('');
+                    const editSelect = document.getElementById("editProductCategory");
+                    const createSelect = document.getElementById("productCategory");
+                    
+                    // Limpiar selects
+                    editSelect.innerHTML = '';
+                    createSelect.innerHTML = '';
+                    
+                    // Agregar opción por defecto
+                    const defaultOption = document.createElement('option');
+                    defaultOption.value = '';
+                    defaultOption.textContent = 'Seleccione una categoría';
+                    editSelect.appendChild(defaultOption);
+                    createSelect.appendChild(defaultOption.cloneNode(true));
+                    
+                    // Agregar categorías
+                    categories.forEach(category => {
+                        const option = document.createElement('option');
+                        option.value = category.id;
+                        option.textContent = category.nombre;
+                        
+                        if (category.id == selectedCategoryId) {
+                            option.selected = true;
+                        }
+                        
+                        editSelect.appendChild(option);
+                        createSelect.appendChild(option.cloneNode(true));
+                    });
                 })
-                .catch(error => console.error("Error al cargar categorías:", error));
+                .catch(error => {
+                    console.error("Error al cargar categorías:", error);
+                    alert("Error al cargar las categorías. Por favor recarga la página.");
+                });
         }
 
-        function loadBrands(selectedBrandId = null) {
-            fetch('/get_marcas?categoria=Deportes')
-                .then(response => response.json())
-                .then(data => {
-                    const brandSelect = document.getElementById("brandFilter");
-                    brandSelect.innerHTML = data.marcas.map(marca => 
-                        `<option value="${marca.id}">${marca.nombre}</option>`
-                    ).join('');
-                })
-                .catch(error => console.error("Error al cargar marcas:", error));
-        }
-
-        function loadBrandsByCategory(categoryName) {
-            fetch(`/get_marcas_por_categoria?categoria=${encodeURIComponent(categoryName)}`)
-                .then(response => response.json())
-                .then(data => {
-                    const brandSelect = document.getElementById("brandFilter");
-                    brandSelect.innerHTML = data.marcas.map(marca => 
-                        `<option value="${marca.id}">${marca.nombre}</option>`
-                    ).join('');
-                })
-                .catch(error => console.error("Error al cargar marcas por categoría:", error));
-        }
-
+        // Función para cargar marcas
         function loadAllBrands(selectedBrandId = null) {
-            fetch('/get_todas_las_marcas')
-                .then(response => response.json())
-                .then(data => {
-                    const brandSelect = document.getElementById("editProductBrand");
-                    const createBrandSelect = document.getElementById("productBrand");
-                    brandSelect.innerHTML = data.map(marca => 
-                        `<option value="${marca.id}" ${marca.id == selectedBrandId ? 'selected' : ''}>${marca.nombre}</option>`
-                    ).join('');
-                    createBrandSelect.innerHTML = data.map(marca => 
-                        `<option value="${marca.id}">${marca.nombre}</option>`
-                    ).join('');
+            return fetch('/get_todas_las_marcas')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Error al cargar marcas');
+                    }
+                    return response.json();
                 })
-                .catch(error => console.error("Error al cargar todas las marcas:", error));
+                .then(brands => {
+                    const editSelect = document.getElementById("editProductBrand");
+                    const createSelect = document.getElementById("productBrand");
+                    
+                    // Limpiar selects
+                    editSelect.innerHTML = '';
+                    createSelect.innerHTML = '';
+                    
+                    // Agregar opción por defecto
+                    const defaultOption = document.createElement('option');
+                    defaultOption.value = '';
+                    defaultOption.textContent = 'Seleccione una marca';
+                    editSelect.appendChild(defaultOption);
+                    createSelect.appendChild(defaultOption.cloneNode(true));
+                    
+                    // Agregar marcas
+                    brands.forEach(brand => {
+                        const option = document.createElement('option');
+                        option.value = brand.id;
+                        option.textContent = brand.nombre;
+                        
+                        if (brand.id == selectedBrandId) {
+                            option.selected = true;
+                        }
+                        
+                        editSelect.appendChild(option);
+                        createSelect.appendChild(option.cloneNode(true));
+                    });
+                })
+                .catch(error => {
+                    console.error("Error al cargar marcas:", error);
+                    alert("Error al cargar las marcas. Por favor recarga la página.");
+                });
         }
 
+        // Función para cargar ubicaciones
         function loadLocations(selectedLocationId = null) {
-            fetch('/get_ubicaciones')
-                .then(response => response.json())
-                .then(locations => {
-                    const locationSelect = document.getElementById("editProductLocation");
-                    const createLocationSelect = document.getElementById("productLocation");
-                    locationSelect.innerHTML = locations.map(location => 
-                        `<option value="${location.id}" ${location.id == selectedLocationId ? 'selected' : ''}>${location.estante}</option>`
-                    ).join('');
-                    createLocationSelect.innerHTML = locations.map(location => 
-                        `<option value="${location.id}">${location.estante}</option>`
-                    ).join('');
+            return fetch('/get_ubicaciones')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`Error HTTP: ${response.status}`);
+                    }
+                    return response.json();
                 })
-                .catch(error => console.error("Error al cargar ubicaciones:", error));
+                .then(locations => {
+                    console.log('Ubicaciones recibidas:', locations);
+                    
+                    const editSelect = document.getElementById("editProductLocation");
+                    const createSelect = document.getElementById("productLocation");
+                    
+                    // Limpiar selects
+                    editSelect.innerHTML = '';
+                    createSelect.innerHTML = '';
+                    
+                    // Agregar opción por defecto
+                    const defaultOption = document.createElement('option');
+                    defaultOption.value = '';
+                    defaultOption.textContent = 'Seleccione una ubicación';
+                    editSelect.appendChild(defaultOption);
+                    createSelect.appendChild(defaultOption.cloneNode(true));
+                    
+                    // Agregar ubicaciones
+                    locations.forEach(location => {
+                        const option = document.createElement('option');
+                        option.value = location.id;
+                        option.textContent = location.estante;
+                        
+                        if (location.id == selectedLocationId) {
+                            option.selected = true;
+                        }
+                        
+                        editSelect.appendChild(option);
+                        createSelect.appendChild(option.cloneNode(true));
+                    });
+                })
+                .catch(error => {
+                    console.error("Error al cargar ubicaciones:", error);
+                    // Mostrar mensaje de error en los selects
+                    const editSelect = document.getElementById("editProductLocation");
+                    const createSelect = document.getElementById("productLocation");
+                    
+                    editSelect.innerHTML = '<option value="">Error al cargar ubicaciones</option>';
+                    createSelect.innerHTML = '<option value="">Error al cargar ubicaciones</option>';
+                    
+                    throw error;
+                });
         }
 
+        // Función para cambiar el estado del producto (activar/desactivar)
+        function toggleProductStatus(productId, isActive) {
+            const confirmMessage = isActive 
+                ? "¿Estás seguro de que deseas desactivar este producto?" 
+                : "¿Estás seguro de que deseas activar este producto?";
+            
+            if (!confirm(confirmMessage)) {
+                return;
+            }
+
+            fetch(`/toggle_product_status?id=${productId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert(isActive ? "Producto desactivado correctamente" : "Producto activado correctamente");
+                    loadProducts();
+                } else {
+                    alert("Error al cambiar el estado del producto: " + (data.message || ''));
+                }
+            })
+            .catch(error => {
+                console.error("Error al cambiar estado del producto:", error);
+                alert("Error al cambiar el estado del producto");
+            });
+        }
+
+        // Función para cargar productos
         function loadProducts(searchTerm = '') {
             const tableBody = document.querySelector("#productsTable tbody");
-            tableBody.innerHTML = '<tr><td colspan="10" class="loading">Cargando productos...</td></tr>';
+            tableBody.innerHTML = '<tr><td colspan="11" class="loading">Cargando productos...</td></tr>';
             
             fetch(`/get_productos?search=${encodeURIComponent(searchTerm)}`)
                 .then(response => {
@@ -442,14 +559,15 @@
                     tableBody.innerHTML = "";
                     
                     if (products.length === 0) {
-                        tableBody.innerHTML = '<tr><td colspan="10">No se encontraron productos</td></tr>';
+                        tableBody.innerHTML = '<tr><td colspan="11">No se encontraron productos</td></tr>';
                         return;
                     }
                     
                     products.forEach(product => {
+                        const isActive = [true, 'true', 't', '1'].includes(product.activo);
                         const row = document.createElement("tr");
-                        row.innerHTML = `
-                            <td>${product.id}</td>
+                        row.innerHTML = 
+                            `<td>${product.id}</td>
                             <td>${product.nombre}</td>
                             <td>${product.descripcion ? product.descripcion.substring(0, 50) + (product.descripcion.length > 50 ? '...' : '') : ''}</td>
                             <td>$${parseFloat(product.precio).toFixed(2)}</td>
@@ -457,31 +575,23 @@
                             <td>${product.marca ? product.marca.nombre : ''}</td>
                             <td>${product.stock}</td>
                             <td>${product.ubicacion ? product.ubicacion.estante : 'Sin ubicación'}</td>
+                            <td>${isActive ? 'Sí' : 'No'}</td>
                             <td>
                                 <img src="${product.imagen}" alt="${product.nombre}" style="width: 100px; height: auto;">
                             </td>
                             <td>
-                                <button onclick="openEditModal(${product.id}, '${escapeHtml(product.nombre)}', '${escapeHtml(product.descripcion || '')}', ${product.precio}, ${product.stock}, ${product.categoria ? product.categoria.id : ''}, ${product.marca ? product.marca.id : ''}, ${product.ubicacion ? product.ubicacion.id : ''})" class="btn">Editar</button>
-                                <button onclick="openDeleteModal(${product.id})" class="btn btn-danger">Eliminar</button>
-                            </td>
-                        `;
+                                <button onclick="openEditModal(${product.id}, '${escapeHtml(product.nombre)}', '${escapeHtml(product.descripcion || '')}', ${product.precio}, ${product.stock}, ${product.categoria ? product.categoria.id : ''}, ${product.marca ? product.marca.id : ''}, ${product.ubicacion ? product.ubicacion.id : ''}, ${isActive})" class="btn">Editar</button>
+                                <button onclick="toggleProductStatus(${product.id}, ${isActive})" class="btn ${isActive ? 'btn-danger' : 'btn-success'}">
+                                    ${isActive ? 'Desactivar' : 'Activar'}
+                                </button>
+                            </td>`;
                         tableBody.appendChild(row);
                     });
                 })
                 .catch(error => {
                     console.error("Error al cargar productos:", error);
-                    tableBody.innerHTML = '<tr><td colspan="10">Error al cargar los productos</td></tr>';
+                    tableBody.innerHTML = '<tr><td colspan="11">Error al cargar los productos</td></tr>';
                 });
-        }
-
-        function escapeHtml(unsafe) {
-            if (!unsafe) return '';
-            return unsafe.toString()
-                .replace(/&/g, "&amp;")
-                .replace(/</g, "&lt;")
-                .replace(/>/g, "&gt;")
-                .replace(/"/g, "&quot;")
-                .replace(/'/g, "&#039;");
         }
 
         function searchProducts() {
@@ -490,10 +600,17 @@
         }
 
         function openCreateModal() {
-            loadCategories();
-            loadAllBrands();
-            loadLocations();
-            document.getElementById("createModal").style.display = "block";
+            // Cargar todos los datos necesarios antes de mostrar el modal
+            Promise.all([
+                loadCategories(),
+                loadAllBrands(),
+                loadLocations()
+            ]).then(() => {
+                document.getElementById("createModal").style.display = "block";
+            }).catch(error => {
+                console.error("Error al cargar datos para creación:", error);
+                alert("Error al cargar los datos necesarios. Por favor intente nuevamente.");
+            });
         }
 
         function closeCreateModal() {
@@ -501,56 +618,34 @@
             document.getElementById("createForm").reset();
         }
 
-        function openEditModal(id, name, description, price, stock, categoryId, brandId, locationId) {
-            document.getElementById("editProductId").value = id;
-            document.getElementById("editProductName").value = name;
-            document.getElementById("editProductDescription").value = description;
-            document.getElementById("editProductPrice").value = price;
-            document.getElementById("editProductStock").value = stock;
+        function openEditModal(id, name, description, price, stock, categoryId, brandId, locationId, active) {
+            // Primero cargar todos los datos necesarios
+            Promise.all([
+                loadCategories(categoryId),
+                loadAllBrands(brandId),
+                loadLocations(locationId)
+            ]).then(() => {
+                // Llenar los campos del formulario
+                document.getElementById("editProductId").value = id;
+                document.getElementById("editProductName").value = name;
+                document.getElementById("editProductDescription").value = description;
+                document.getElementById("editProductPrice").value = price;
+                document.getElementById("editProductStock").value = stock;
+                document.getElementById("editProductActive").value = active ? "1" : "0";
 
-            loadCategories(categoryId);
-            loadAllBrands(brandId);
-            loadLocations(locationId);
-
-            document.getElementById("editModal").style.display = "block";
+                // Mostrar el modal
+                document.getElementById("editModal").style.display = "block";
+            }).catch(error => {
+                console.error("Error al cargar datos para edición:", error);
+                alert("Error al cargar los datos del producto. Por favor intente nuevamente.");
+            });
         }
 
         function closeEditModal() {
             document.getElementById("editModal").style.display = "none";
         }
 
-        function openDeleteModal(id) {
-            document.getElementById("deleteProductId").value = id;
-            document.getElementById("deleteModal").style.display = "block";
-        }
-
-        function closeDeleteModal() {
-            document.getElementById("deleteModal").style.display = "none";
-        }
-
-        function confirmDelete() {
-            const productId = document.getElementById("deleteProductId").value;
-            
-            fetch(`/eliminar_producto?id=${productId}`, {
-                method: 'DELETE'
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    alert("Producto eliminado correctamente");
-                    loadProducts();
-                } else {
-                    alert("Error al eliminar el producto");
-                }
-                closeDeleteModal();
-            })
-            .catch(error => {
-                console.error("Error al eliminar producto:", error);
-                alert("Error al eliminar el producto");
-                closeDeleteModal();
-            });
-        }
-
+        // Manejo del formulario de edición
         document.getElementById("editForm").addEventListener("submit", function (e) {
             e.preventDefault();
 
@@ -563,6 +658,7 @@
             formData.append("categoria_id", document.getElementById("editProductCategory").value);
             formData.append("marca_id", document.getElementById("editProductBrand").value);
             formData.append("ubicacion_id", document.getElementById("editProductLocation").value);
+            formData.append("activo", document.getElementById("editProductActive").value);
 
             const imageInput = document.getElementById("editProductImage");
             if (imageInput.files.length > 0) {
@@ -580,7 +676,7 @@
                         closeEditModal();
                         loadProducts();
                     } else {
-                        alert("Error al actualizar el producto: " + (data.error || ''));
+                        alert("Error al actualizar el producto: " + (data.message || ''));
                     }
                 })
                 .catch(error => {
@@ -589,6 +685,7 @@
                 });
         });
 
+        // Manejo del formulario de creación
         document.getElementById("createForm").addEventListener("submit", function (e) {
             e.preventDefault();
 
@@ -600,6 +697,7 @@
             formData.append("categoria_id", document.getElementById("productCategory").value);
             formData.append("marca_id", document.getElementById("productBrand").value);
             formData.append("ubicacion_id", document.getElementById("productLocation").value);
+            formData.append("activo", document.getElementById("productActive").value);
             formData.append("imagen", document.getElementById("productImage").files[0]);
 
             fetch('/crear_producto', {
@@ -613,7 +711,7 @@
                         closeCreateModal();
                         loadProducts();
                     } else {
-                        alert("Error al crear el producto: " + (data.error || ''));
+                        alert("Error al crear el producto: " + (data.message || ''));
                     }
                 })
                 .catch(error => {
@@ -622,7 +720,9 @@
                 });
         });
 
+        // Inicialización al cargar la página
         document.addEventListener("DOMContentLoaded", function() {
+            // Menú de usuario
             const userButton = document.getElementById("user-menu-button");
             const userMenu = document.getElementById("user-menu");
             
@@ -637,8 +737,13 @@
                 }
             });
 
+            // Cargar datos iniciales
             loadProducts();
+            loadCategories();
+            loadAllBrands();
+            loadLocations();
             
+            // Búsqueda con Enter
             document.getElementById("searchInput").addEventListener("keypress", function(e) {
                 if (e.key === "Enter") {
                     searchProducts();

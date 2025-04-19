@@ -550,14 +550,16 @@
         <section class="products-section">
             <div class="productos-container" id="productos">
                 {% for producto in productos %}
-                    <div class="producto-card" data-categoria="{{ producto.categoria }}" data-marca="{{ producto.marca }}">
-                        <img src="{{ producto.imagen }}" alt="{{ producto.nombre }}" class="producto-imagen">
-                        <h3>{{ producto.nombre }}</h3>
-                        <p>Marca: {{ producto.marca }}</p>
-                        <p>Precio: ${{ producto.precio }}</p>
-                        <button class="add-to-cart" data-id="{{ producto.id }}" data-nombre="{{ producto.nombre }}" data-precio="{{ producto.precio }}">Añadir al carrito</button>
-                        <div id="paypal-button-container-{{ producto.id }}"></div>
-                    </div>
+                    {% if producto.activo == 't' %}
+                        <div class="producto-card" data-categoria="{{ producto.categoria }}" data-marca="{{ producto.marca }}" data-activo="{{ producto.activo }}">
+                            <img src="{{ producto.imagen }}" alt="{{ producto.nombre }}" class="producto-imagen">
+                            <h3>{{ producto.nombre }}</h3>
+                            <p>Marca: {{ producto.marca }}</p>
+                            <p>Precio: ${{ producto.precio }}</p>
+                            <button class="add-to-cart" data-id="{{ producto.id }}" data-nombre="{{ producto.nombre }}" data-precio="{{ producto.precio }}">Añadir al carrito</button>
+                            <div id="paypal-button-container-{{ producto.id }}"></div>
+                        </div>
+                    {% endif %}
                 {% endfor %}
             </div>
         </section>
@@ -608,18 +610,23 @@
                     const container = document.getElementById("productos");
                     container.innerHTML = "";
                     
-                    if (products.length === 0) {
-                        container.innerHTML = "<p>No se encontraron productos</p>";
+                    // Filtramos por productos activos (aunque el backend ya lo hace)
+                    const activeProducts = products.filter(product => product.activo === true);
+                    
+                    if (activeProducts.length === 0) {
+                        container.innerHTML = "<p>No se encontraron productos activos</p>";
                         return;
                     }
                     
-                    products.forEach(product => {
+                    activeProducts.forEach(product => {
                         const productCard = document.createElement("div");
                         productCard.className = "producto-card";
                         productCard.dataset.categoria = product.categoria;
                         productCard.dataset.marca = product.marca;
+                        productCard.dataset.activo = product.activo;
+                        
                         productCard.innerHTML = `
-                            <img src="${producto.imagen}" alt="${producto.nombre}" class="producto-imagen">
+                            <img src="${product.imagen}" alt="${product.nombre}" class="producto-imagen">
                             <h3>${product.nombre}</h3>
                             <p>Marca: ${product.marca}</p>
                             <p>Precio: $${product.precio}</p>
@@ -629,11 +636,11 @@
                             <div id="paypal-button-container-${product.id}"></div>
                         `;
                         container.appendChild(productCard);
-
-                        // Renderizar botón de PayPal para cada producto
+                        
+                        // Renderizar botón de PayPal si es necesario
                         if (typeof paypal !== 'undefined') {
                             paypal.Buttons({
-                                createOrder: function (data, actions) {
+                                createOrder: function(data, actions) {
                                     return actions.order.create({
                                         purchase_units: [{
                                             amount: {
@@ -642,8 +649,8 @@
                                         }]
                                     });
                                 },
-                                onApprove: function (data, actions) {
-                                    return actions.order.capture().then(function (details) {
+                                onApprove: function(data, actions) {
+                                    return actions.order.capture().then(function(details) {
                                         alert('Pago completado por ' + details.payer.name.given_name);
                                     });
                                 }
@@ -826,71 +833,75 @@
 
         // Función para filtrar productos
         function filtrarProductos() {
-            const categoria = document.getElementById("categoria").value;
-            const marca = document.getElementById("marca").value;
+    const categoria = document.getElementById("categoria").value;
+    const marca = document.getElementById("marca").value;
 
-            fetch(`/filtrar_productos?categoria=${categoria}&marca=${marca}`)
-                .then(response => response.json())
-                .then(data => {
-                    const container = document.getElementById("productos");
-                    container.innerHTML = ""; // Limpiar el contenedor de productos
+    fetch(`/filtrar_productos?categoria=${categoria}&marca=${marca}`)
+        .then(response => response.json())
+        .then(data => {
+            const container = document.getElementById("productos");
+            container.innerHTML = "";
+            
+            // Filtramos por productos activos (aunque el backend ya lo hace)
+            const activeProducts = data.productos ? data.productos.filter(p => p.activo === true) : [];
+            
+            if (activeProducts.length === 0) {
+                container.innerHTML = "<p>No se encontraron productos activos con esos filtros</p>";
+                return;
+            }
+            
+            activeProducts.forEach(producto => {
+                const productCard = document.createElement("div");
+                productCard.className = "producto-card";
+                productCard.dataset.categoria = producto.categoria;
+                productCard.dataset.marca = producto.marca;
+                productCard.dataset.activo = producto.activo;
 
-                    if (data.productos && data.productos.length > 0) {
-                        data.productos.forEach(producto => {
-                            const productCard = document.createElement("div");
-                            productCard.className = "producto-card";
-                            productCard.dataset.categoria = producto.categoria;
-                            productCard.dataset.marca = producto.marca;
+                productCard.innerHTML = `
+                    <img src="${producto.imagen}" alt="${producto.nombre}" class="producto-imagen">
+                    <h3>${producto.nombre}</h3>
+                    <p>Marca: ${producto.marca}</p>
+                    <p>Precio: $${producto.precio.toFixed(2)}</p>
+                    <button class="add-to-cart" data-id="${producto.id}" data-nombre="${producto.nombre}" data-precio="${producto.precio}">
+                        Añadir al carrito
+                    </button>
+                    <div id="paypal-button-container-${producto.id}"></div>
+                `;
 
-                            // Generar el HTML de la tarjeta del producto, incluyendo la imagen
-                            productCard.innerHTML = `
-                                <img src="${producto.imagen}" alt="${producto.nombre}" class="producto-imagen">
-                                <h3>${producto.nombre}</h3>
-                                <p>Marca: ${producto.marca}</p>
-                                <p>Precio: $${producto.precio.toFixed(2)}</p>
-                                <button class="add-to-cart" data-id="${producto.id}" data-nombre="${producto.nombre}" data-precio="${producto.precio}">
-                                    Añadir al carrito
-                                </button>
-                                <div id="paypal-button-container-${producto.id}"></div>
-                            `;
+                container.appendChild(productCard);
 
-                            container.appendChild(productCard);
-
-                            // Renderizar botón de PayPal para cada producto
-                            if (typeof paypal !== 'undefined') {
-                                paypal.Buttons({
-                                    createOrder: function (data, actions) {
-                                        return actions.order.create({
-                                            purchase_units: [{
-                                                amount: {
-                                                    value: producto.precio
-                                                }
-                                            }]
-                                        });
-                                    },
-                                    onApprove: function (data, actions) {
-                                        return actions.order.capture().then(function (details) {
-                                            alert('Pago completado por ' + details.payer.name.given_name);
-                                        });
+                // Renderizar botón de PayPal si es necesario
+                if (typeof paypal !== 'undefined') {
+                    paypal.Buttons({
+                        createOrder: function(data, actions) {
+                            return actions.order.create({
+                                purchase_units: [{
+                                    amount: {
+                                        value: producto.precio
                                     }
-                                }).render(`#paypal-button-container-${producto.id}`);
-                            }
-                        });
+                                }]
+                            });
+                        },
+                        onApprove: function(data, actions) {
+                            return actions.order.capture().then(function(details) {
+                                alert('Pago completado por ' + details.payer.name.given_name);
+                            });
+                        }
+                    }).render(`#paypal-button-container-${producto.id}`);
+                }
+            });
 
-                        // Agregar event listeners a los nuevos botones
-                        document.querySelectorAll(".add-to-cart").forEach(button => {
-                            button.addEventListener("click", agregarAlCarrito);
-                        });
-                    } else {
-                        container.innerHTML = "<p>No se encontraron productos con esos filtros</p>";
-                    }
-                })
-                .catch(error => {
-                    console.error("Error al filtrar productos:", error);
-                    const container = document.getElementById("productos");
-                    container.innerHTML = "<p>Error al cargar los productos</p>";
-                });
-        }
+            // Agregar event listeners a los nuevos botones
+            document.querySelectorAll(".add-to-cart").forEach(button => {
+                button.addEventListener("click", agregarAlCarrito);
+            });
+        })
+        .catch(error => {
+            console.error("Error al filtrar productos:", error);
+            const container = document.getElementById("productos");
+            container.innerHTML = "<p>Error al cargar los productos</p>";
+        });
+}
         
         // Rellenar marcas cuando se selecciona categoría
         document.getElementById("categoria").addEventListener("change", function() {
