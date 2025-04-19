@@ -865,6 +865,7 @@ def inventario():
         flash("Acceso no autorizado", "danger")
         return redirect(url_for('login'))
     
+    # Obtener todos los productos sin filtrar por activo
     productos = Producto.query.all()
     return render_template('admin_inventario.html', productos=productos)
 
@@ -1042,6 +1043,42 @@ def toggle_product_status():
             "success": False, 
             "error": "Error interno del servidor al cambiar el estado del producto"
         }), 500
+
+@app.route('/get_all_productos', methods=['GET'])
+def obtener_todos_productos():
+    try:
+        search_term = request.args.get('search', '').strip()
+        categoria_id = request.args.get('categoria_id', type=int)
+        marca_id = request.args.get('marca_id', type=int)
+        
+        # Consulta sin filtro por activo
+        query = db.session.query(Producto)
+        
+        # Filtros adicionales
+        if search_term:
+            query = query.filter(
+                db.or_(
+                    Producto.nombre.ilike(f'%{search_term}%'),
+                    Producto.descripcion.ilike(f'%{search_term}%'),
+                    Producto.marca.has(Marca.nombre.ilike(f'%{search_term}%')),
+                    Producto.categoria.has(Categoria.nombre.ilike(f'%{search_term}%'))
+                )
+            )
+        
+        if categoria_id:
+            query = query.filter_by(categoria_id=categoria_id)
+            
+        if marca_id:
+            query = query.filter_by(marca_id=marca_id)
+        
+        productos = query.all()
+        
+        productos_json = [p.to_dict() for p in productos]
+        return jsonify(productos_json)
+        
+    except Exception as e:
+        app.logger.error(f"Error al obtener productos: {str(e)}", exc_info=True)
+        return jsonify({'error': 'Error interno del servidor'}), 500
                 
 # ========================== EJECUCIÓN ==========================
 if __name__ == "__main__":

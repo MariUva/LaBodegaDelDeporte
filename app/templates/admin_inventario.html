@@ -543,56 +543,62 @@
             });
         }
 
-        // Función para cargar productos
         function loadProducts(searchTerm = '') {
-            const tableBody = document.querySelector("#productsTable tbody");
-            tableBody.innerHTML = '<tr><td colspan="11" class="loading">Cargando productos...</td></tr>';
+    const tableBody = document.querySelector("#productsTable tbody");
+    tableBody.innerHTML = '<tr><td colspan="11" class="loading">Cargando productos...</td></tr>';
+    
+    // Usar la nueva ruta que incluye productos inactivos
+    fetch(`/get_all_productos?search=${encodeURIComponent(searchTerm)}`)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Error en la respuesta del servidor');
+            }
+            return response.json();
+        })
+        .then(products => {
+            tableBody.innerHTML = "";
             
-            fetch(`/get_productos?search=${encodeURIComponent(searchTerm)}`)
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Error en la respuesta del servidor');
-                    }
-                    return response.json();
-                })
-                .then(products => {
-                    tableBody.innerHTML = "";
-                    
-                    if (products.length === 0) {
-                        tableBody.innerHTML = '<tr><td colspan="11">No se encontraron productos</td></tr>';
-                        return;
-                    }
-                    
-                    products.forEach(product => {
-                        const isActive = [true, 'true', 't', '1'].includes(product.activo);
-                        const row = document.createElement("tr");
-                        row.innerHTML = 
-                            `<td>${product.id}</td>
-                            <td>${product.nombre}</td>
-                            <td>${product.descripcion ? product.descripcion.substring(0, 50) + (product.descripcion.length > 50 ? '...' : '') : ''}</td>
-                            <td>$${parseFloat(product.precio).toFixed(2)}</td>
-                            <td>${product.categoria ? product.categoria.nombre : ''}</td>
-                            <td>${product.marca ? product.marca.nombre : ''}</td>
-                            <td>${product.stock}</td>
-                            <td>${product.ubicacion ? product.ubicacion.estante : 'Sin ubicación'}</td>
-                            <td>${isActive ? 'Sí' : 'No'}</td>
-                            <td>
-                                <img src="${product.imagen}" alt="${product.nombre}" style="width: 100px; height: auto;">
-                            </td>
-                            <td>
-                                <button onclick="openEditModal(${product.id}, '${escapeHtml(product.nombre)}', '${escapeHtml(product.descripcion || '')}', ${product.precio}, ${product.stock}, ${product.categoria ? product.categoria.id : ''}, ${product.marca ? product.marca.id : ''}, ${product.ubicacion ? product.ubicacion.id : ''}, ${isActive})" class="btn">Editar</button>
-                                <button onclick="toggleProductStatus(${product.id}, ${isActive})" class="btn ${isActive ? 'btn-danger' : 'btn-success'}">
-                                    ${isActive ? 'Desactivar' : 'Activar'}
-                                </button>
-                            </td>`;
-                        tableBody.appendChild(row);
-                    });
-                })
-                .catch(error => {
-                    console.error("Error al cargar productos:", error);
-                    tableBody.innerHTML = '<tr><td colspan="11">Error al cargar los productos</td></tr>';
-                });
-        }
+            if (products.length === 0) {
+                tableBody.innerHTML = '<tr><td colspan="11">No se encontraron productos</td></tr>';
+                return;
+            }
+            
+            products.forEach(product => {
+                const isActive = [true, 'true', 't', '1'].includes(product.activo);
+                const row = document.createElement("tr");
+                // Resaltar filas de productos inactivos
+                if (!isActive) {
+                    row.style.opacity = "0.7";
+                    row.style.backgroundColor = "#ffecec";
+                }
+                
+                row.innerHTML = 
+                    `<td>${product.id}</td>
+                    <td>${product.nombre}</td>
+                    <td>${product.descripcion ? product.descripcion.substring(0, 50) + (product.descripcion.length > 50 ? '...' : '') : ''}</td>
+                    <td>$${parseFloat(product.precio).toFixed(2)}</td>
+                    <td>${product.categoria ? product.categoria.nombre : ''}</td>
+                    <td>${product.marca ? product.marca.nombre : ''}</td>
+                    <td>${product.stock}</td>
+                    <td>${product.ubicacion ? product.ubicacion.estante : 'Sin ubicación'}</td>
+                    <td>${isActive ? 'Sí' : 'No'}</td>
+                    <td>
+                        <img src="${product.imagen}" alt="${product.nombre}" style="width: 100px; height: auto;">
+                    </td>
+                    <td>
+                        <button onclick="openEditModal(${product.id}, '${escapeHtml(product.nombre)}', '${escapeHtml(product.descripcion || '')}', ${product.precio}, ${product.stock}, ${product.categoria ? product.categoria.id : ''}, ${product.marca ? product.marca.id : ''}, ${product.ubicacion ? product.ubicacion.id : ''}, ${isActive})" class="btn">Editar</button>
+                        <button onclick="toggleProductStatus(${product.id}, ${isActive})" class="btn ${isActive ? 'btn-danger' : 'btn-success'}">
+                            ${isActive ? 'Desactivar' : 'Activar'}
+                        </button>
+                    </td>`;
+                tableBody.appendChild(row);
+            });
+        })
+        .catch(error => {
+            console.error("Error al cargar productos:", error);
+            tableBody.innerHTML = '<tr><td colspan="11">Error al cargar los productos</td></tr>';
+        });
+}
 
         function searchProducts() {
             const searchTerm = document.getElementById("searchInput").value;
