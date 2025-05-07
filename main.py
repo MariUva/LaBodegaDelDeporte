@@ -16,6 +16,11 @@ from sendgrid.helpers.mail import Mail
 import cloudinary
 import cloudinary.uploader
 import cloudinary.api
+import mercadopago
+from flask import request, redirect, url_for, flash
+
+# Configuración de Mercado Pago
+sdk = mercadopago.SDK(os.getenv("MERCADOPAGO_ACCESS_TOKEN"))
 
 # Configuración de SendGrid
 sg = SendGridAPIClient(os.getenv("SENDGRID_API_KEY"))
@@ -805,6 +810,87 @@ def limpiar_carrito():
         app.logger.error(f"Error al limpiar carrito: {str(e)}")
         return jsonify({'success': False, 'error': str(e)}), 500
 
+@app.route('/procesar_pago', methods=['POST'])
+def procesar_pago():
+    if 'usuario_id' not in session:
+        return jsonify({'success': False, 'error': 'Debes iniciar sesión para pagar'}), 401
+
+    try:
+        data = request.get_json()
+        carrito = data.get('carrito', [])
+        
+        if not carrito:
+            return jsonify({'success': False, 'error': 'El carrito está vacío'}), 400
+
+        # Verificar stock y preparar items
+        items = []
+        for producto in carrito:
+            prod_db = db.session.get(Producto, producto['id'])
+            if not prod_db:
+                return jsonify({
+                    'success': False,
+                    'error': f'Producto {producto["id"]} no encontrado'
+                }), 400
+            if prod_db.stock < producto['cantidad']:
+                return jsonify({
+                    'success': False,
+                    'error': f'No hay suficiente stock para {prod_db.nombre}'
+                }), 400
+            
+            items.append({
+                "title": prod_db.nombre[:127],  # Máximo 127 caracteres
+                "quantity": int(producto['cantidad']),
+                "currency_id": "CLP",
+                "unit_price": float(prod_db.precio)
+            })
+
+        # Validar items
+        if not items:
+            return jsonify({'success': False, 'error': 'No hay items válidos para pagar'}), 400
+
+        # Crear preferencia
+        preference_data = {
+            "items": items,
+            "payer": {
+                "name": session.get('nombre', 'Cliente'),
+                "email": session.get('correo', '')
+            },
+            "back_urls": {
+                "success": url_for("pago_exitoso", _external=True),
+                "failure": url_for("pago_fallido", _external=True),
+                "pending": url_for("pago_pendiente", _external=True)
+            },
+            "auto_return": "approved"
+        }
+
+        # Quitar notification_url temporalmente para pruebas
+        # preference_data["notification_url"] = url_for("mp_webhook", _external=True)
+
+        app.logger.info(f"Intentando crear preferencia con: {preference_data}")
+        
+        preference_response = sdk.preference().create(preference_data)
+        app.logger.info(f"Respuesta de MercadoPago: {preference_response}")
+        
+        if preference_response['status'] not in [200, 201]:
+            error_msg = preference_response.get('response', {}).get('message', 'Error desconocido')
+            return jsonify({
+                'success': False,
+                'error': f'Error MP: {error_msg}',
+                'response': preference_response
+            }), 500
+
+        return jsonify({
+            'success': True,
+            'init_point': preference_response['response']['init_point']
+        })
+
+    except Exception as e:
+        app.logger.error(f"Error en procesar_pago: {str(e)}", exc_info=True)
+        return jsonify({
+            'success': False,
+            'error': f'Error interno: {str(e)}'
+        }), 500
+    
 @app.route('/pago', methods=['GET', 'POST'])
 def pago():
     if request.method == 'GET':
@@ -846,6 +932,108 @@ def pago():
                 'error': 'Error interno al procesar el pago'
             }), 500
 
+
+@app.route('/pago_exitoso')
+def pago_exitoso():
+    # Actualizar stock y vaciar carrito
+    carrito = session.get('carrito', [])
+    for item in carrito:
+        producto = db.session.get(Producto, item['id'])
+        if producto:
+            producto.stock -= item['cantidad']
+    db.session.commit()
+    
+    session.pop('carrito', None)
+    flash("¡Pago exitoso! Gracias por tu compra.", "success")
+    return redirect(url_for('categorias'))
+
+@app.route('/pago_fallido')
+def pago_fallido():
+    flash("El pago fue rechazado o falló. Por favor, intenta nuevamente.", "danger")
+    return redirect(url_for('ver_carrito'))
+
+@app.route('/pago_pendiente')
+def pago_pendiente():
+    flash("Tu pago está pendiente. Te notificaremos cuando se confirme.", "info")
+    return redirect(url_for('categorias'))
+
+
+@app.route("/success")
+def success():
+    return render_template("pago_resultado.html", estado="exitoso", mensaje="✅ El pago fue realizado con éxito. ¡Gracias por tu compra!")
+
+@app.route("/failure")
+def failure():
+    return render_template("pago_resultado.html", estado="fallido", mensaje="❌ El pago no fue exitoso. Por favor, intenta de nuevo.")
+
+@app.route("/pending")
+def pending():
+    return render_template("pago_resultado.html", estado="pendiente", mensaje="⏳ El pago está pendiente. Te notificaremos cuando se confirme.")
+
+
+# Inicializa MercadoPago SDK (usa tu access token real)
+sdk = mercadopago.SDK("TEST-7356850175082371-050708-a469ce66523a2bd689849769538245a7-466327316")
+
+# Función para obtener el carrito del usuario
+def obtener_carrito_usuario():
+    carrito = session.get('carrito', [])
+    productos = []
+    
+    for item in carrito:
+        producto = Producto.query.get(item['id'])
+        if producto:
+            producto_dict = producto.to_dict()
+            producto_dict['cantidad'] = item['cantidad']
+            productos.append(producto_dict)
+    
+    return productos
+
+def obtener_producto_por_id(producto_id):
+    # Usar session.get() en lugar de Query.get()
+    producto = db.session.get(Producto, producto_id)
+    if producto:
+        return {
+            'id': producto.id,
+            'nombre': producto.nombre,
+            'precio': float(producto.precio)
+        }
+    return None
+
+
+# Endpoint para pagar un solo producto
+@app.route("/pagar/<int:producto_id>")
+def pagar(producto_id):  # Usar producto_id en lugar de id
+    producto = obtener_producto_por_id(producto_id)  # Pasar producto_id correctamente
+    if not producto:
+        flash("Producto no encontrado", "warning")
+        return redirect(url_for("categorias"))
+
+    try:
+        preference_data = {
+            "items": [{
+                "title": producto["nombre"],
+                "quantity": 1,
+                "currency_id": "CLP",
+                "unit_price": float(producto["precio"])
+            }],
+            "back_urls": {
+                "success": url_for("success", _external=True),
+                "failure": url_for("failure", _external=True),
+                "pending": url_for("pending", _external=True)
+            },
+            "auto_return": "approved",
+            "notification_url": url_for("mp_webhook", _external=True)
+        }
+
+        preference_response = sdk.preference().create(preference_data)
+        preference = preference_response["response"]
+
+        return redirect(preference["init_point"])
+
+    except Exception as e:
+        app.logger.error(f"Error al crear la preferencia: {str(e)}")
+        flash("Error al crear la preferencia de pago", "danger")
+        return redirect(url_for("categorias"))
 
 
 # Ruta de inicio
@@ -1079,7 +1267,76 @@ def obtener_todos_productos():
     except Exception as e:
         app.logger.error(f"Error al obtener productos: {str(e)}", exc_info=True)
         return jsonify({'error': 'Error interno del servidor'}), 500
-                
+
+
+
+@app.route('/pagar_carrito', methods=["GET"])
+def pagar_carrito():
+    if 'usuario_id' not in session:
+        flash("Debes iniciar sesión para pagar", "warning")
+        return redirect(url_for('login'))
+
+    carrito = session.get('carrito', [])
+    if not carrito:
+        flash("El carrito está vacío", "warning")
+        return redirect(url_for('categorias'))
+
+    try:
+        items = [{
+            "title": producto['nombre'],
+            "quantity": producto['cantidad'],
+            "currency_id": "CLP",
+            "unit_price": float(producto['precio'])
+        } for producto in carrito]
+
+        # Verifica stock antes de proceder al pago
+        for producto in carrito:
+            prod_db = db.session.get(Producto, producto['id'])
+            if not prod_db or prod_db.stock < producto['cantidad']:
+                flash(f"No hay suficiente stock para {producto['nombre']}", "danger")
+                return redirect(url_for('ver_carrito'))
+
+        preference_data = {
+            "items": items,
+            "back_urls": {
+                "success": url_for("pago_exitoso", _external=True),
+                "failure": url_for("pago_fallido", _external=True),
+                "pending": url_for("pago_pendiente", _external=True)
+            },
+            "auto_return": "approved",
+        }
+
+        preference_response = sdk.preference().create(preference_data)
+        preference = preference_response["response"]
+        
+        return redirect(preference["init_point"])
+        
+    except Exception as e:
+        app.logger.error(f"Error MercadoPago: {str(e)}")
+        flash("Error al procesar el pago con MercadoPago", "danger")
+        return redirect(url_for('ver_carrito'))
+
+
+@app.route('/mp_webhook', methods=['POST'])
+def mp_webhook():
+    if request.method == 'POST':
+        data = request.json
+        # Aquí procesas la notificación de MercadoPago
+        app.logger.info(f"Webhook recibido: {data}")
+        
+        # Verifica el estado del pago
+        if data.get('action') == 'payment.updated':
+            payment_id = data['data']['id']
+            payment_info = sdk.payment().get(payment_id)
+            
+            # Procesa según el estado del pago
+            status = payment_info['response']['status']
+            if status == 'approved':
+                # Pago aprobado, vaciar carrito
+                session.pop('carrito', None)
+        
+        return jsonify({'status': 'success'}), 200
+    
 # ========================== EJECUCIÓN ==========================
 if __name__ == "__main__":
     debug_mode = os.getenv("FLASK_DEBUG", "False").lower() == "true"

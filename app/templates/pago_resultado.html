@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Resultado del Pago</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin-top: 100px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            display: inline-block;
+            border-radius: 10px;
+            box-shadow: 0px 0px 10px #ccc;
+        }
+        .exitoso { color: green; }
+        .fallido { color: red; }
+        .pendiente { color: orange; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="{{ estado }}">{{ mensaje }}</h1>
+        <a href="{{ url_for('index') }}">Volver al inicio</a>
+    </div>
+</body>
+</html>

@@ -479,25 +479,54 @@
                         <circle cx="20" cy="21" r="1"></circle>
                         <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
                     </svg>
-                    <span class="count-products" id="contador-productos">0</span>
+                    <span class="count-products" id="contador-productos">{{ productos|length }}</span>
                 </button>
                 
                 <div class="container-cart-products" id="cart-dropdown">
                     <div id="cart-items">
-                        <!-- Aquí se mostrarán los productos del carrito -->
-                        <p style="text-align: center; color: #666; font-size: 14px;">
-                            ¡Ups! Aún no has agregado nada al carrito de compras. Sigue explorando...
-                        </p>
+                        {% if productos %}
+                            <!-- Mostrar los productos del carrito -->
+                            {% for producto in productos %}
+                                <div class="producto">
+                                    <h3>{{ producto.nombre }}</h3>
+                                    <p>Precio: ${{ producto.precio }}</p>
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            <p style="text-align: center; color: #666; font-size: 14px;">
+                                ¡Ups! Aún no has agregado nada al carrito de compras. Sigue explorando...
+                            </p>
+                        {% endif %}
                     </div>
-                    <div class="cart-total">
-                        <h3>Total de los productos:</h3>
-                        <span class="total-pagar">$0</span>
-                    </div>
-                    <button class="btn-pagar" id="btn-pagar" data-url="{{ url_for('pago') }}">Ir a pagar</button>
+    
+                    {% if productos %}
+                        <div class="cart-total">
+                            <h3>Total de los productos:</h3>
+                            <span class="total-pagar">
+                                ${{ productos|sum(attribute='precio') }}
+                            </span>
+                        </div>
+    
+                        <!-- Botón de pago único -->
+                        <button onclick="pagarCarrito()" class="btn-pagar" style="
+                            background: #009ee3;
+                            color: white;
+                            border: none;
+                            padding: 10px 20px;
+                            border-radius: 4px;
+                            cursor: pointer;
+                            font-size: 16px;
+                            margin-top: 15px;
+                        ">
+                            <i class="fas fa-credit-card"></i> Pagar con Mercado Pago
+                        </button>
+
+                    {% endif %}
                 </div>
             </div>
         </div>
     </header>
+    
     
     <!-- Mensajes emergentes -->
     <div class="alert alert-success" id="mensaje-exito">
@@ -831,6 +860,44 @@
             }
         }
 
+        function pagarCarrito() {
+            if (carrito.length === 0) {
+                alert("El carrito está vacío");
+                return;
+            }
+
+            const carritoParaEnviar = carrito.map(item => ({
+                id: item.id.toString(), // Asegurar que es string
+                nombre: item.nombre,
+                precio: parseFloat(item.precio), // Asegurar que es float
+                cantidad: parseInt(item.cantidad) // Asegurar que es entero
+            }));
+
+            fetch('/procesar_pago', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({carrito: carritoParaEnviar})
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success && data.init_point) {
+                    window.location.href = data.init_point;
+                } else {
+                    // Mostrar error detallado
+                    const errorMsg = data.error || 'Error desconocido al crear el pago';
+                    alert(`Error: ${errorMsg}\n\nDetalles: ${JSON.stringify(data.response || {}, null, 2)}`);
+                    console.error('Error en pago:', data);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert(`Error de conexión: ${error.message}`);
+            });
+        }
+
+
         // Función para filtrar productos
         function filtrarProductos() {
     const categoria = document.getElementById("categoria").value;
@@ -981,6 +1048,8 @@
                 time = setTimeout(logout, 60000); // 1 minuto de inactividad
             }
         };
+
+        
 
         inactivityTime();
     </script>

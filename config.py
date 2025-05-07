@@ -36,6 +36,9 @@ class Config:
     CLOUDINARY_CLOUD_NAME = os.getenv("CLOUDINARY_CLOUD_NAME")
     CLOUDINARY_API_KEY = os.getenv("CLOUDINARY_API_KEY")
     CLOUDINARY_API_SECRET = os.getenv("CLOUDINARY_API_SECRET")
+
+      # Configuración de MercadoPago
+    MERCADOPAGO_ACCESS_TOKEN = os.getenv("MERCADOPAGO_ACCESS_TOKEN")
     
     # Otras configuraciones opcionales
     DEBUG = os.getenv("FLASK_DEBUG", "false").lower() == "true"
