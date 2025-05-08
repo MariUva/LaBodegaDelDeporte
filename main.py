@@ -990,35 +990,42 @@ def obtener_producto_por_id(producto_id):
 
 # Endpoint para pagar un solo producto
 @app.route("/pagar/<int:producto_id>")
-def pagar(producto_id):  # Usar producto_id en lugar de id
-    producto = obtener_producto_por_id(producto_id)  # Pasar producto_id correctamente
+def pagar(producto_id):
+    # Obtener el producto por su ID
+    producto = obtener_producto_por_id(producto_id)
+    
+    # Si no se encuentra el producto, redirigir con un mensaje de advertencia
     if not producto:
         flash("Producto no encontrado", "warning")
         return redirect(url_for("categorias"))
-
+    
     try:
+        # Crear los datos de la preferencia de pago
         preference_data = {
             "items": [{
-                "title": producto["nombre"],
-                "quantity": 1,
-                "currency_id": "CLP",
-                "unit_price": float(producto["precio"])
+                "title": producto["nombre"],  # Nombre del producto
+                "quantity": 1,                # Cantidad del producto
+                "currency_id": "COP",         # Moneda (Peso Colombiano)
+                "unit_price": float(producto["precio"])  # Precio unitario del producto
             }],
             "back_urls": {
-                "success": url_for("success", _external=True),
-                "failure": url_for("failure", _external=True),
-                "pending": url_for("pending", _external=True)
+                "success": "https://labodegadeldeporte-production.up.railway.app/pago_exitoso",  # URL de éxito
+                "failure": "https://labodegadeldeporte-production.up.railway.app/pago_fallido",  # URL de fallo
+                "pending": "https://labodegadeldeporte-production.up.railway.app/pago_pendiente"  # URL pendiente
             },
-            "auto_return": "approved",
-            "notification_url": url_for("mp_webhook", _external=True)
+            "auto_return": "approved",  # Devolver automáticamente al completar el pago
+            "notification_url": url_for("mp_webhook", _external=True)  # URL para recibir notificaciones de pago
         }
-
+        
+        # Crear la preferencia con la SDK de Mercado Pago
         preference_response = sdk.preference().create(preference_data)
         preference = preference_response["response"]
-
+        
+        # Redirigir al usuario al punto de inicio del pago
         return redirect(preference["init_point"])
-
+    
     except Exception as e:
+        # Si ocurre un error, registrar el error y redirigir con un mensaje
         app.logger.error(f"Error al crear la preferencia: {str(e)}")
         flash("Error al crear la preferencia de pago", "danger")
         return redirect(url_for("categorias"))
