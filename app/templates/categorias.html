@@ -509,18 +509,25 @@
     
                         <!-- Botón de pago único -->
                         <!-- Botón de pago único con enlace de producción -->
-                        <button onclick="window.location.href='{{ init_point }}';" class="btn-pagar" style="
-                            background: #009ee3;
-                            color: white;
-                            border: none;
-                            padding: 10px 20px;
-                            border-radius: 4px;
-                            cursor: pointer;
-                            font-size: 16px;
-                            margin-top: 15px;
-                            ">
-                            <i class="fas fa-credit-card"></i> Pagar con Mercado Pago
-                        </button>
+                        <button onclick="pagar()">Pagar con Mercado Pago</button>
+
+                        <script>
+                        async function pagar() {
+                            const carrito = [
+                                { title: "Camiseta Deportiva", quantity: 2, unit_price: 50000 },
+                                { title: "Balón Fútbol", quantity: 1, unit_price: 70000 }
+                            ];
+
+                            const response = await fetch("/crear_preferencia", {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({ items: carrito })
+                            });
+
+                            const data = await response.json();
+                            window.location.href = data.init_point;  // redirige al checkout
+                        }
+                        </script>
 
 
 
