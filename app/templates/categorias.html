@@ -508,7 +508,8 @@
                         </div>
     
                         <!-- Botón de pago único -->
-                        <button onclick="window.location.href='https://www.mercadopago.com.co/checkout/v1/redirect?pref_id=466327316-6cb3d13d-10bd-4f05-ae95-e1b9073bec5d';" class="btn-pagar" style="
+                        <!-- Botón de pago único con enlace de producción -->
+                        <button onclick="window.location.href='{{ init_point }}';" class="btn-pagar" style="
                             background: #009ee3;
                             color: white;
                             border: none;
@@ -517,9 +518,10 @@
                             cursor: pointer;
                             font-size: 16px;
                             margin-top: 15px;
-                        ">
+                            ">
                             <i class="fas fa-credit-card"></i> Pagar con Mercado Pago
                         </button>
+
 
 
                     {% endif %}
@@ -1053,9 +1055,7 @@
 
         inactivityTime();
     </script>
-    <!-- SDK de PayPal -->
-    <script src="https://www.paypal.com/sdk/js?client-id=TUSANDBOX_CLIENT_ID"></script>
-
+    
     <!-- Al final de categorias.html, antes de </body> -->
     <script>
         // Verificar al cargar la página si hay un usuario pero no carrito
@@ -1065,7 +1065,6 @@
                 localStorage.setItem('carrito', JSON.stringify([]));
             }
             
-            // Resto de tu inicialización JS (si tienes más lógica al cargar la página)
         });
     </script>
 

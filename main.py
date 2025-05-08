@@ -963,7 +963,7 @@ def pending():
 
 
 # Inicializa MercadoPago SDK (usa tu access token real)
-sdk = mercadopago.SDK("TEST-7356850175082371-050708-a469ce66523a2bd689849769538245a7-466327316")
+sdk = mercadopago.SDK("APP_USR-7356850175082371-050708-0ef8768d3184ead8d91f27da42a86ac0-466327316")
 
 # Función para obtener el carrito del usuario
 def obtener_carrito_usuario():

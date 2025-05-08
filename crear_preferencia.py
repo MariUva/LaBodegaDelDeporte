@@ -1,28 +1,44 @@
-import mercadopago
+import requests
+import json
 
-# Reemplaza con tu Access Token de prueba o producción
-sdk = mercadopago.SDK("TEST-7356850175082371-050708-a469ce66523a2bd689849769538245a7-466327316")
+def crear_preferencia_carrito(carrito):
+    # URL de la API de Mercado Pago
+    url = "https://api.mercadopago.com/checkout/preferences"
 
-# Crea la preferencia
-preference_data = {
-    "items": [
-        {
-            "title": "Camiseta de fútbol",
-            "quantity": 1,
-            "unit_price": 100.0,
-            "currency_id": "COP"  # O "USD", "ARS", etc.
-        }
-    ],
-    "back_urls": {
-        "success": "https://www.tusitio.com/exito",
-        "failure": "https://www.tusitio.com/error",
-        "pending": "https://www.tusitio.com/pendiente"
-    },
-    "auto_return": "approved"
-}
+    # Tu Access Token de Producción (PROD-...)
+    access_token = "APP_USR-7356850175082371-050708-0ef8768d3184ead8d91f27da42a86ac0-466327316"
 
-# Ejecutar la creación
-preference_response = sdk.preference().create(preference_data)
+    # Los headers necesarios para la autenticación
+    headers = {
+        "Authorization": f"Bearer {access_token}",
+        "Content-Type": "application/json"
+    }
 
-# Mostrar el enlace de pago
-print("Enlace de pago:", preference_response["response"]["init_point"])
+    # Datos de la preferencia de pago
+    payload = {
+        "items": carrito,
+        "back_urls": {
+            "success": "https://labodegadeldeporte-production.up.railway.app/pago_exitoso",
+            "failure": "https://labodegadeldeporte-production.up.railway.app/pago_fallido",
+            "pending": "https://labodegadeldeporte-production.up.railway.app/pago_pendiente"
+        },
+        "auto_return": "approved"
+    }
+
+    # Hacemos la solicitud POST para crear la preferencia
+    response = requests.post(url, headers=headers, data=json.dumps(payload))
+
+    # Comprobamos si la respuesta fue exitosa
+    if response.status_code == 201:
+        # Obtenemos la respuesta JSON
+        preference_response = response.json()
+
+        # Retornamos el init_point de la preferencia para la redirección
+        return preference_response["response"]["init_point"], None
+    else:
+        # Si hubo un error, retornamos el error
+        return None, f"Error al crear la preferencia: {response.text}"
+
+
+
+
