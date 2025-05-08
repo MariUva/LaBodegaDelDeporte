@@ -1298,13 +1298,13 @@ def pagar_carrito():
 
     try:
         items = [{
-            "title": producto['nombre'],
+            "title": producto['nombre'][:127],  # MercadoPago limita a 127 caracteres
             "quantity": producto['cantidad'],
-            "currency_id": "CLP",
+            "currency_id": "CLP",  # O "USD" según tu moneda
             "unit_price": float(producto['precio'])
         } for producto in carrito]
 
-        # Verifica stock antes de proceder al pago
+        # Verificar stock antes de proceder al pago
         for producto in carrito:
             prod_db = db.session.get(Producto, producto['id'])
             if not prod_db or prod_db.stock < producto['cantidad']:
@@ -1314,20 +1314,26 @@ def pagar_carrito():
         preference_data = {
             "items": items,
             "back_urls": {
-                "success": url_for("pago_exitoso", _external=True),
-                "failure": url_for("pago_fallido", _external=True),
-                "pending": url_for("pago_pendiente", _external=True)
+                "success": "https://labodegadeldeporte-production.up.railway.app/pago_exitoso",  # URL de éxito
+                "failure": "https://labodegadeldeporte-production.up.railway.app/pago_fallido",  # URL de fallo
+                "pending": "https://labodegadeldeporte-production.up.railway.app/pago_pendiente"  # URL pendiente
             },
             "auto_return": "approved",
+            "notification_url": url_for("mp_webhook", _external=True)  # Opcional para webhooks
         }
 
         preference_response = sdk.preference().create(preference_data)
-        preference = preference_response["response"]
         
+        if preference_response['status'] not in [200, 201]:
+            error_msg = preference_response.get('response', {}).get('message', 'Error desconocido')
+            flash(f"Error al crear preferencia: {error_msg}", "danger")
+            return redirect(url_for('ver_carrito'))
+
+        preference = preference_response["response"]
         return redirect(preference["init_point"])
         
     except Exception as e:
-        app.logger.error(f"Error MercadoPago: {str(e)}")
+        app.logger.error(f"Error MercadoPago: {str(e)}", exc_info=True)
         flash("Error al procesar el pago con MercadoPago", "danger")
         return redirect(url_for('ver_carrito'))
 
