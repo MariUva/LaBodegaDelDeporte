@@ -851,10 +851,11 @@ def procesar_pago():
                 "email": session.get('correo', '')
             },
             "back_urls": {
-                "success": url_for("pago_exitoso", _external=True),
-                "failure": url_for("pago_fallido", _external=True),
-                "pending": url_for("pago_pendiente", _external=True)
+                "success": "https://labodegadeldeporte-production.up.railway.app/success",
+                "failure": "https://labodegadeldeporte-production.up.railway.app/failure",
+                "pending": "https://labodegadeldeporte-production.up.railway.app/pending"
             },
+
             "auto_return": "approved",
             "notification_url": url_for("mp_webhook", _external=True)  # Opcional para webhooks
         }
@@ -1314,10 +1315,11 @@ def pagar_carrito():
         preference_data = {
             "items": items,
             "back_urls": {
-                "success": "https://labodegadeldeporte-production.up.railway.app/pago_exitoso",  # URL de éxito
-                "failure": "https://labodegadeldeporte-production.up.railway.app/pago_fallido",  # URL de fallo
-                "pending": "https://labodegadeldeporte-production.up.railway.app/pago_pendiente"  # URL pendiente
+                "success": "https://labodegadeldeporte-production.up.railway.app/success",
+                "failure": "https://labodegadeldeporte-production.up.railway.app/failure",
+                "pending": "https://labodegadeldeporte-production.up.railway.app/pending"
             },
+
             "auto_return": "approved",
             "notification_url": url_for("mp_webhook", _external=True)  # Opcional para webhooks
         }
