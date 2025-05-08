@@ -822,33 +822,24 @@ def procesar_pago():
         if not carrito:
             return jsonify({'success': False, 'error': 'El carrito está vacío'}), 400
 
-        # Verificar stock y preparar items
+        # Preparar items para MercadoPago
         items = []
         for producto in carrito:
             prod_db = db.session.get(Producto, producto['id'])
-            if not prod_db:
+            if not prod_db or prod_db.stock < producto['cantidad']:
                 return jsonify({
                     'success': False,
-                    'error': f'Producto {producto["id"]} no encontrado'
-                }), 400
-            if prod_db.stock < producto['cantidad']:
-                return jsonify({
-                    'success': False,
-                    'error': f'No hay suficiente stock para {prod_db.nombre}'
+                    'error': f'No hay suficiente stock para {prod_db.nombre if prod_db else "un producto"}'
                 }), 400
             
             items.append({
-                "title": prod_db.nombre[:127],  # Máximo 127 caracteres
+                "title": prod_db.nombre[:127],  # Límite de caracteres
                 "quantity": int(producto['cantidad']),
-                "currency_id": "CLP",
+                "currency_id": "CLP",  # O "USD" si usas dólares
                 "unit_price": float(prod_db.precio)
             })
 
-        # Validar items
-        if not items:
-            return jsonify({'success': False, 'error': 'No hay items válidos para pagar'}), 400
-
-        # Crear preferencia
+        # Crear preferencia de pago
         preference_data = {
             "items": items,
             "payer": {
@@ -860,22 +851,17 @@ def procesar_pago():
                 "failure": url_for("pago_fallido", _external=True),
                 "pending": url_for("pago_pendiente", _external=True)
             },
-            "auto_return": "approved"
+            "auto_return": "approved",
+            "notification_url": url_for("mp_webhook", _external=True)  # Opcional para webhooks
         }
 
-        # Quitar notification_url temporalmente para pruebas
-        # preference_data["notification_url"] = url_for("mp_webhook", _external=True)
-
-        app.logger.info(f"Intentando crear preferencia con: {preference_data}")
-        
         preference_response = sdk.preference().create(preference_data)
-        app.logger.info(f"Respuesta de MercadoPago: {preference_response}")
         
         if preference_response['status'] not in [200, 201]:
             error_msg = preference_response.get('response', {}).get('message', 'Error desconocido')
             return jsonify({
                 'success': False,
-                'error': f'Error MP: {error_msg}',
+                'error': f'Error al crear preferencia: {error_msg}',
                 'response': preference_response
             }), 500
 
@@ -890,7 +876,9 @@ def procesar_pago():
             'success': False,
             'error': f'Error interno: {str(e)}'
         }), 500
-    
+
+        
+
 @app.route('/pago', methods=['GET', 'POST'])
 def pago():
     if request.method == 'GET':
@@ -935,7 +923,7 @@ def pago():
 
 @app.route('/pago_exitoso')
 def pago_exitoso():
-    # Actualizar stock y vaciar carrito
+    # Vaciar el carrito y actualizar stock
     carrito = session.get('carrito', [])
     for item in carrito:
         producto = db.session.get(Producto, item['id'])

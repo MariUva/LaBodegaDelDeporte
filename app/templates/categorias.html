@@ -631,6 +631,7 @@
             loadProducts();
         });
         
+        
         // Función para cargar productos
         function loadProducts(searchTerm = '') {
             fetch(`/get_productos?search=${encodeURIComponent(searchTerm)}`)
@@ -867,10 +868,10 @@
             }
 
             const carritoParaEnviar = carrito.map(item => ({
-                id: item.id.toString(), // Asegurar que es string
+                id: item.id,
                 nombre: item.nombre,
-                precio: parseFloat(item.precio), // Asegurar que es float
-                cantidad: parseInt(item.cantidad) // Asegurar que es entero
+                precio: parseFloat(item.precio),
+                cantidad: parseInt(item.cantidad)
             }));
 
             fetch('/procesar_pago', {
@@ -878,22 +879,20 @@
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({carrito: carritoParaEnviar})
+                body: JSON.stringify({ carrito: carritoParaEnviar })
             })
             .then(response => response.json())
             .then(data => {
                 if (data.success && data.init_point) {
+                    // Redirigir al usuario a MercadoPago
                     window.location.href = data.init_point;
                 } else {
-                    // Mostrar error detallado
-                    const errorMsg = data.error || 'Error desconocido al crear el pago';
-                    alert(`Error: ${errorMsg}\n\nDetalles: ${JSON.stringify(data.response || {}, null, 2)}`);
-                    console.error('Error en pago:', data);
+                    alert(`Error: ${data.error || 'Error desconocido'}`);
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
-                alert(`Error de conexión: ${error.message}`);
+                alert('Error al procesar el pago');
             });
         }
 
