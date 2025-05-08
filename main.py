@@ -19,6 +19,10 @@ import cloudinary.api
 import mercadopago
 from flask import request, redirect, url_for, flash
 
+import logging
+app.logger.setLevel(logging.DEBUG)  # Capturar detalles más completos
+
+
 # Configuración de Mercado Pago
 sdk = mercadopago.SDK(os.getenv("MERCADOPAGO_ACCESS_TOKEN"))
 
@@ -871,11 +875,9 @@ def procesar_pago():
         })
 
     except Exception as e:
-        app.logger.error(f"Error en procesar_pago: {str(e)}", exc_info=True)
-        return jsonify({
-            'success': False,
-            'error': f'Error interno: {str(e)}'
-        }), 500
+        app.logger.error(f"Error al procesar el pago: {str(e)}")  # Registrar el error completo
+        flash("Error al crear la preferencia de pago", "danger")
+        return redirect(url_for("categorias"))
 
         
 
@@ -991,13 +993,17 @@ def obtener_producto_por_id(producto_id):
 # Endpoint para pagar un solo producto
 @app.route("/pagar/<int:producto_id>")
 def pagar(producto_id):
+    app.logger.info(f"Iniciando pago para el producto con ID: {producto_id}")
+    
     # Obtener el producto por su ID
     producto = obtener_producto_por_id(producto_id)
     
-    # Si no se encuentra el producto, redirigir con un mensaje de advertencia
     if not producto:
+        app.logger.warning(f"Producto con ID {producto_id} no encontrado.")
         flash("Producto no encontrado", "warning")
         return redirect(url_for("categorias"))
+    
+    app.logger.info(f"Producto encontrado: {producto['nombre']} - Precio: {producto['precio']}")
     
     try:
         # Crear los datos de la preferencia de pago
@@ -1013,15 +1019,29 @@ def pagar(producto_id):
                 "failure": "https://labodegadeldeporte-production.up.railway.app/pago_fallido",  # URL de fallo
                 "pending": "https://labodegadeldeporte-production.up.railway.app/pago_pendiente"  # URL pendiente
             },
-            "auto_return": "approved",  # Devolver automáticamente al completar el pago
+            "auto_return": "approved",  # Asegúrate de que el valor 'approved' es el correcto
             "notification_url": url_for("mp_webhook", _external=True)  # URL para recibir notificaciones de pago
         }
+
+        # Verifica que las URLs son accesibles
+        app.logger.info(f"Verificando URLs de back_urls: {preference_data['back_urls']}")
         
         # Crear la preferencia con la SDK de Mercado Pago
         preference_response = sdk.preference().create(preference_data)
+        if 'response' not in preference_response:
+            app.logger.error(f"Respuesta inesperada de Mercado Pago: {preference_response}")
+            flash("Error al crear la preferencia de pago", "danger")
+            return redirect(url_for("categorias"))
+
+        preference = preference_response["response"]
+
+
+        app.logger.info(f"Respuesta de Mercado Pago: {preference_response}")
+        
         preference = preference_response["response"]
         
         # Redirigir al usuario al punto de inicio del pago
+        app.logger.info(f"Redirigiendo al usuario al punto de inicio: {preference['init_point']}")
         return redirect(preference["init_point"])
     
     except Exception as e:
