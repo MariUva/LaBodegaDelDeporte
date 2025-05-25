@@ -373,6 +373,37 @@
     </div>
 
     <script>
+        document.addEventListener('DOMContentLoaded', function() {
+        const form = document.querySelector('form');
+
+        form.addEventListener('submit', function(event) {
+            // Validar número de lote
+            const loteInput = document.getElementById('lote');
+            if (!/^\d+$/.test(loteInput.value)) {
+                alert('El número de lote debe ser numérico.');
+                event.preventDefault(); // Evita que el formulario se envíe
+                return;
+            }
+
+            // Validar producto verificado
+            const verificadoCheckbox = document.getElementById('verificado');
+            if (!verificadoCheckbox.checked) {
+                alert('Debe marcar el producto como verificado.');
+                event.preventDefault(); // Evita que el formulario se envíe
+                return;
+            }
+
+            // Validar campos vacíos
+            const inputs = document.querySelectorAll('input, select, textarea');
+            for (let input of inputs) {
+                if (input.required && !input.value.trim()) {
+                    alert(`El campo ${input.name} no puede estar vacío.`);
+                    event.preventDefault(); // Evita que el formulario se envíe
+                    return;
+                }
+            }
+        });
+    });
         // Menú de usuario
         document.addEventListener("DOMContentLoaded", function() {
             const userButton = document.getElementById("user-menu-button");
