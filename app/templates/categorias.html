@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -12,12 +13,13 @@
             box-sizing: border-box;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
-        
-        html, body {
+
+        html,
+        body {
             height: 100%;
             width: 100%;
         }
-        
+
         body {
             background-color: #f8f9fa;
             color: #333;
@@ -25,7 +27,7 @@
             display: flex;
             flex-direction: column;
         }
-        
+
         /* Header mejorado */
         header {
             background: linear-gradient(135deg, #2c3e50, #3498db);
@@ -34,12 +36,12 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
             position: sticky;
             top: 0;
             z-index: 1000;
         }
-        
+
         .header-title {
             font-size: 1.5rem;
             font-weight: 600;
@@ -48,7 +50,7 @@
             text-overflow: ellipsis;
             max-width: 60%;
         }
-        
+
         /* Contenedor principal */
         .main-container {
             flex: 1;
@@ -56,44 +58,44 @@
             padding: 2rem;
             overflow-y: auto;
         }
-        
+
         /* Sección de categorías */
         .categories-section {
             background: white;
             border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
             padding: 2rem;
             margin-bottom: 2rem;
         }
-        
+
         .section-title {
             font-size: 1.8rem;
             margin-bottom: 1.5rem;
             color: #2c3e50;
             text-align: center;
         }
-        
+
         /* Grid de categorías */
         .categorias-marcas-container {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
             gap: 1.5rem;
         }
-        
+
         .categoria {
             background: white;
             border-radius: 8px;
             overflow: hidden;
-            box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
             transition: all 0.3s ease;
             border: 1px solid #eee;
         }
-        
+
         .categoria:hover {
             transform: translateY(-5px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
         }
-        
+
         .category-header {
             background: #3498db;
             color: white;
@@ -101,14 +103,14 @@
             font-size: 1rem;
             font-weight: 600;
         }
-        
+
         .marcas-grid {
             padding: 0.8rem;
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
             gap: 0.8rem;
         }
-        
+
         .marca-card {
             display: block;
             padding: 0.6rem;
@@ -120,45 +122,46 @@
             border-radius: 4px;
             text-align: center;
         }
-        
+
         .marca-card:hover {
             background: #f8f9fa;
             color: #3498db;
             border-color: #3498db;
         }
-        
+
         /* Filtros */
         .filtro-container {
             background: white;
             padding: 1.5rem;
             border-radius: 8px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
             margin-bottom: 2rem;
             display: flex;
             flex-wrap: wrap;
             gap: 1rem;
             align-items: center;
         }
-        
+
         .filter-label {
             font-weight: 600;
             color: #555;
             margin-right: 0.5rem;
         }
-        
-        select, button {
+
+        select,
+        button {
             padding: 0.7rem 1rem;
             border: 1px solid #ddd;
             border-radius: 6px;
             font-size: 1rem;
             min-width: 200px;
         }
-        
+
         select {
             background-color: white;
             cursor: pointer;
         }
-        
+
         button {
             background: #3498db;
             color: white;
@@ -167,59 +170,67 @@
             transition: background 0.3s;
             font-weight: 500;
         }
-        
+
         button:hover {
             background: #2980b9;
         }
-        
+
         /* Productos */
         .productos-container {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
             gap: 1.5rem;
         }
-        
+
         .producto-card {
-        background: white;
-        border-radius: 8px;
-        padding: 1.5rem;
-        box-shadow: 0 3px 10px rgba(0,0,0,0.08);
-        transition: all 0.3s ease;
-        border: 1px solid #eee;
-        display: flex; /* Activa flexbox */
-        flex-direction: column; /* Organiza los elementos en columna */
-        height: 100%; /* Ocupa todo el espacio disponible */
+            background: white;
+            border-radius: 8px;
+            padding: 1.5rem;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s ease;
+            border: 1px solid #eee;
+            display: flex;
+            /* Activa flexbox */
+            flex-direction: column;
+            /* Organiza los elementos en columna */
+            height: 100%;
+            /* Ocupa todo el espacio disponible */
         }
-        
+
         .producto-card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
         }
-        
+
         .producto-card h3 {
             color: #2c3e50;
             margin-bottom: 0.5rem;
-            flex-grow: 0; /* Evita que el título crezca */
+            flex-grow: 0;
+            /* Evita que el título crezca */
         }
 
         .producto-imagen {
             width: 100%;
-            height: 180px; /* Altura fija para las imágenes */
+            height: 180px;
+            /* Altura fija para las imágenes */
             border-radius: 8px;
             margin-bottom: 1rem;
-            object-fit: contain; /* Mantiene proporciones sin recortar */
+            object-fit: contain;
+            /* Mantiene proporciones sin recortar */
         }
-            
+
         .producto-card p {
             color: #555;
             margin-bottom: 0.5rem;
             font-size: 0.9rem;
-            flex-grow: 0; /* Evita que los párrafos crezcan */
+            flex-grow: 0;
+            /* Evita que los párrafos crezcan */
         }
-        
+
         producto-card .add-to-cart {
             width: 100%;
-            margin-top: auto; /* Empuja el botón hacia abajo */
+            margin-top: auto;
+            /* Empuja el botón hacia abajo */
             padding: 0.7rem;
             background: #3498db;
             color: white;
@@ -229,7 +240,7 @@
             transition: background 0.3s;
             font-weight: 500;
         }
-        
+
         /* Iconos y utilidades */
         .icon-button {
             background: none;
@@ -242,37 +253,37 @@
             gap: 0.5rem;
             position: relative;
         }
-        
+
         .header-actions {
             display: flex;
             gap: 1.5rem;
         }
-        
+
         .user-container {
             position: relative;
         }
-        
+
         .user-menu {
             position: absolute;
             top: 100%;
             right: 0;
             background: white;
             border-radius: 6px;
-            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
             min-width: 200px;
             display: none;
             z-index: 100;
             overflow: hidden;
         }
-        
+
         .user-menu.show {
             display: block;
         }
-        
+
         .user-menu ul {
             list-style: none;
         }
-        
+
         .user-menu ul li a {
             padding: 0.8rem 1rem;
             display: block;
@@ -280,17 +291,17 @@
             text-decoration: none;
             transition: all 0.2s;
         }
-        
+
         .user-menu ul li a:hover {
             background: #f8f9fa;
             color: #3498db;
         }
-        
+
         /* Carrito */
         .container-icon {
             position: relative;
         }
-        
+
         .count-products {
             background: #e74c3c;
             color: white;
@@ -305,14 +316,14 @@
             top: -8px;
             right: -8px;
         }
-        
+
         .container-cart-products {
             position: absolute;
             top: 100%;
             right: 0;
             background: white;
             border-radius: 6px;
-            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
             width: 350px;
             max-height: 500px;
             overflow-y: auto;
@@ -321,11 +332,11 @@
             padding: 1rem;
             font-size: 0.85rem;
         }
-        
+
         .container-cart-products.show {
             display: block;
         }
-        
+
         .cart-product {
             display: flex;
             justify-content: space-between;
@@ -333,29 +344,30 @@
             padding: 0.8rem 0;
             border-bottom: 1px solid #eee;
         }
-        
+
         .info-cart-product {
             display: flex;
             gap: 1rem;
             align-items: center;
         }
-        
+
         .cantidad-producto-carrito {
-            color: #e74c3c; /* Rojo */
+            color: #e74c3c;
+            /* Rojo */
             font-weight: bold;
             margin-right: 5px;
-        }   
+        }
 
         .titulo-producto-carrito {
             font-weight: 500;
             color: #000;
         }
-        
+
         .precio-producto-carrito {
             color: #3498db;
             font-weight: 600;
         }
-        
+
         .cart-product button {
             color: #e74c3c;
             cursor: pointer;
@@ -367,11 +379,11 @@
             border: none;
             font-size: 1rem;
         }
-        
+
         .cart-product button:hover {
             background: #f8d7da;
         }
-        
+
         .cart-total {
             display: flex;
             justify-content: space-between;
@@ -382,7 +394,7 @@
             font-size: 1.1rem;
             color: #000;
         }
-        
+
         /* Mensajes */
         .alert {
             position: fixed;
@@ -391,19 +403,19 @@
             padding: 1rem 1.5rem;
             border-radius: 6px;
             color: white;
-            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
             z-index: 1000;
             display: none;
         }
-        
+
         .alert-success {
             background: #28a745;
         }
-        
+
         .alert-danger {
             background: #dc3545;
         }
-        
+
         /* Responsive */
         @media (max-width: 768px) {
             header {
@@ -412,57 +424,61 @@
                 padding: 1rem;
                 text-align: center;
             }
-            
+
             .header-title {
                 max-width: 100%;
             }
-            
+
             .header-actions {
                 width: 100%;
                 justify-content: center;
             }
-            
+
             .filtro-container {
                 flex-direction: column;
                 align-items: stretch;
             }
-            
-            select, button {
+
+            select,
+            button {
                 width: 100%;
             }
-            
+
             .container-cart-products {
                 width: 300px;
                 right: -50px;
             }
-            
+
             .categorias-marcas-container {
                 grid-template-columns: 1fr;
             }
-            
+
             .productos-container {
                 display: grid;
                 grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
                 gap: 1.5rem;
-                align-items: stretch; /* Asegura que todas las tarjetas tengan la misma altura */
+                align-items: stretch;
+                /* Asegura que todas las tarjetas tengan la misma altura */
             }
         }
     </style>
 </head>
+
 <body>
     <header>
         <h1 class="header-title">Bienvenid@ {{ nombre }}, a la Bodega Del Deporte</h1>
-        
+
         <div class="header-actions">
             <!-- Menú de usuario -->
             <div class="user-container">
                 <button class="icon-button" id="user-menu-button">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
                         <circle cx="12" cy="7" r="4"></circle>
                     </svg>
                 </button>
-                
+
                 <div class="user-menu" id="user-menu">
                     <ul>
                         <li><a href="/perfil">Ver Perfil</a></li>
@@ -470,64 +486,88 @@
                     </ul>
                 </div>
             </div>
-            
+
             <!-- Carrito -->
             <div class="container-icon">
                 <button class="icon-button" id="cart-button">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <circle cx="9" cy="21" r="1"></circle>
                         <circle cx="20" cy="21" r="1"></circle>
                         <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
                     </svg>
                     <span class="count-products" id="contador-productos">{{ productos|length }}</span>
                 </button>
-                
+
                 <div class="container-cart-products" id="cart-dropdown">
                     <div id="cart-items">
                         {% if productos %}
-                            <!-- Mostrar los productos del carrito -->
-                            {% for producto in productos %}
-                                <div class="producto">
-                                    <h3>{{ producto.nombre }}</h3>
-                                    <p>Precio: ${{ producto.precio }}</p>
-                                </div>
-                            {% endfor %}
+                        <!-- Mostrar los productos del carrito -->
+                        {% for producto in productos %}
+                        <div class="producto">
+                            <h3>{{ producto.nombre }}</h3>
+                            <p>Precio: ${{ producto.precio }}</p>
+                        </div>
+                        {% endfor %}
                         {% else %}
-                            <p style="text-align: center; color: #666; font-size: 14px;">
-                                ¡Ups! Aún no has agregado nada al carrito de compras. Sigue explorando...
-                            </p>
+                        <p style="text-align: center; color: #666; font-size: 14px;">
+                            ¡Ups! Aún no has agregado nada al carrito de compras. Sigue explorando...
+                        </p>
                         {% endif %}
                     </div>
-    
+
                     {% if productos %}
-                        <div class="cart-total">
-                            <h3>Total de los productos:</h3>
-                            <span class="total-pagar">
-                                ${{ productos|sum(attribute='precio') }}
-                            </span>
-                        </div>
-    
-                        <!-- Botón de pago único -->
-                        <!-- Botón de pago único con enlace de producción -->
-                        <button onclick="pagar()">Pagar con Mercado Pago</button>
+                    <div class="cart-total">
+                        <h3>Total de los productos:</h3>
+                        <span class="total-pagar">
+                            ${{ productos|sum(attribute='precio') }}
+                        </span>
+                    </div>
 
-                        <script>
+                    <!-- Botón de pago único -->
+                    <!-- Botón de pago único con enlace de producción -->
+                    <button onclick="pagar()">Pagar con Mercado Pago</button>
+
+                    <script>
                         async function pagar() {
-                            const carrito = [
-                                { title: "Camiseta Deportiva", quantity: 2, unit_price: 50000 },
-                                { title: "Balón Fútbol", quantity: 1, unit_price: 70000 }
-                            ];
+                            // Obtener el carrito actual desde localStorage
+                            const carrito = JSON.parse(localStorage.getItem("carrito")) || [];
 
-                            const response = await fetch("/crear_preferencia", {
-                                method: "POST",
-                                headers: { "Content-Type": "application/json" },
-                                body: JSON.stringify({ items: carrito })
-                            });
+                            // Verificar que el carrito no esté vacío
+                            if (carrito.length === 0) {
+                                alert("El carrito está vacío");
+                                return;
+                            }
 
-                            const data = await response.json();
-                            window.location.href = data.init_point;  // redirige al checkout
+                            // Preparar los items para Mercado Pago
+                            const itemsParaMP = carrito.map(item => ({
+                                title: item.nombre,
+                                quantity: item.cantidad,
+                                unit_price: item.precio
+                            }));
+
+                            try {
+                                const response = await fetch("/crear_preferencia", {
+                                    method: "POST",
+                                    headers: { "Content-Type": "application/json" },
+                                    body: JSON.stringify({ items: itemsParaMP })
+                                });
+
+                                const data = await response.json();
+
+                                if (data.error) {
+                                    alert(data.error);
+                                    return;
+                                }
+
+                                // Redirigir al checkout de Mercado Pago
+                                window.location.href = data.init_point;
+                            } catch (error) {
+                                console.error("Error al procesar el pago:", error);
+                                alert("Error al procesar el pago. Por favor intenta nuevamente.");
+                            }
                         }
-                        </script>
+                    </script>
 
 
 
@@ -536,21 +576,21 @@
             </div>
         </div>
     </header>
-    
-    
+
+
     <!-- Mensajes emergentes -->
     <div class="alert alert-success" id="mensaje-exito">
         ¡Producto agregado al carrito con éxito!
     </div>
-    
+
     <div class="alert alert-danger" id="mensaje-eliminado">
         ¡Producto eliminado del carrito con éxito!
     </div>
-    
+
     <div class="main-container">
         <section class="categories-section">
             <h2 class="section-title">Nuestras Categorías</h2>
-            
+
             <div class="categorias-marcas-container">
                 {% for categoria, marcas in categorias.items() %}
                 <div class="categoria">
@@ -564,7 +604,7 @@
                 {% endfor %}
             </div>
         </section>
-        
+
         <div class="filtro-container">
             <div class="filter-group">
                 <label for="categoria" class="filter-label">Categoría:</label>
@@ -575,30 +615,32 @@
                     {% endfor %}
                 </select>
             </div>
-            
+
             <div class="filter-group">
                 <label for="marca" class="filter-label">Marca:</label>
                 <select id="marca">
                     <option value="">Selecciona una marca</option>
                 </select>
             </div>
-            
+
             <button onclick="filtrarProductos()">Filtrar</button>
         </div>
-        
+
         <section class="products-section">
             <div class="productos-container" id="productos">
                 {% for producto in productos %}
-                    {% if producto.activo == 't' %}
-                        <div class="producto-card" data-categoria="{{ producto.categoria }}" data-marca="{{ producto.marca }}" data-activo="{{ producto.activo }}">
-                            <img src="{{ producto.imagen }}" alt="{{ producto.nombre }}" class="producto-imagen">
-                            <h3>{{ producto.nombre }}</h3>
-                            <p>Marca: {{ producto.marca }}</p>
-                            <p>Precio: ${{ producto.precio }}</p>
-                            <button class="add-to-cart" data-id="{{ producto.id }}" data-nombre="{{ producto.nombre }}" data-precio="{{ producto.precio }}">Añadir al carrito</button>
-                            <div id="paypal-button-container-{{ producto.id }}"></div>
-                        </div>
-                    {% endif %}
+                {% if producto.activo == 't' %}
+                <div class="producto-card" data-categoria="{{ producto.categoria }}" data-marca="{{ producto.marca }}"
+                    data-activo="{{ producto.activo }}">
+                    <img src="{{ producto.imagen }}" alt="{{ producto.nombre }}" class="producto-imagen">
+                    <h3>{{ producto.nombre }}</h3>
+                    <p>Marca: {{ producto.marca }}</p>
+                    <p>Precio: ${{ producto.precio }}</p>
+                    <button class="add-to-cart" data-id="{{ producto.id }}" data-nombre="{{ producto.nombre }}"
+                        data-precio="{{ producto.precio }}">Añadir al carrito</button>
+                    <div id="paypal-button-container-{{ producto.id }}"></div>
+                </div>
+                {% endif %}
                 {% endfor %}
             </div>
         </section>
@@ -607,41 +649,41 @@
     <script>
         // Variables globales
         let carrito = JSON.parse(localStorage.getItem("carrito")) || [];
-        
+
         // DOM Content Loaded
-        document.addEventListener("DOMContentLoaded", function() {
+        document.addEventListener("DOMContentLoaded", function () {
             // Menú de usuario
             const userButton = document.getElementById("user-menu-button");
             const userMenu = document.getElementById("user-menu");
-            
-            userButton.addEventListener("click", function(event) {
+
+            userButton.addEventListener("click", function (event) {
                 event.stopPropagation();
                 userMenu.classList.toggle("show");
             });
-            
+
             // Carrito
             const cartButton = document.getElementById("cart-button");
             const cartDropdown = document.getElementById("cart-dropdown");
-            
-            cartButton.addEventListener("click", function(event) {
+
+            cartButton.addEventListener("click", function (event) {
                 event.stopPropagation();
                 cartDropdown.classList.toggle("show");
             });
-            
+
             // Cerrar menús al hacer clic fuera
-            document.addEventListener("click", function() {
+            document.addEventListener("click", function () {
                 userMenu.classList.remove("show");
                 cartDropdown.classList.remove("show");
             });
-            
+
             // Actualizar carrito al cargar
             actualizarCarrito();
-            
+
             // Cargar productos iniciales
             loadProducts();
         });
-        
-        
+
+
         // Función para cargar productos
         function loadProducts(searchTerm = '') {
             fetch(`/get_productos?search=${encodeURIComponent(searchTerm)}`)
@@ -649,22 +691,22 @@
                 .then(products => {
                     const container = document.getElementById("productos");
                     container.innerHTML = "";
-                    
+
                     // Filtramos por productos activos (aunque el backend ya lo hace)
                     const activeProducts = products.filter(product => product.activo === true);
-                    
+
                     if (activeProducts.length === 0) {
                         container.innerHTML = "<p>No se encontraron productos activos</p>";
                         return;
                     }
-                    
+
                     activeProducts.forEach(product => {
                         const productCard = document.createElement("div");
                         productCard.className = "producto-card";
                         productCard.dataset.categoria = product.categoria;
                         productCard.dataset.marca = product.marca;
                         productCard.dataset.activo = product.activo;
-                        
+
                         productCard.innerHTML = `
                             <img src="${product.imagen}" alt="${product.nombre}" class="producto-imagen">
                             <h3>${product.nombre}</h3>
@@ -676,11 +718,11 @@
                             <div id="paypal-button-container-${product.id}"></div>
                         `;
                         container.appendChild(productCard);
-                        
+
                         // Renderizar botón de PayPal si es necesario
                         if (typeof paypal !== 'undefined') {
                             paypal.Buttons({
-                                createOrder: function(data, actions) {
+                                createOrder: function (data, actions) {
                                     return actions.order.create({
                                         purchase_units: [{
                                             amount: {
@@ -689,32 +731,32 @@
                                         }]
                                     });
                                 },
-                                onApprove: function(data, actions) {
-                                    return actions.order.capture().then(function(details) {
+                                onApprove: function (data, actions) {
+                                    return actions.order.capture().then(function (details) {
                                         alert('Pago completado por ' + details.payer.name.given_name);
                                     });
                                 }
                             }).render(`#paypal-button-container-${product.id}`);
                         }
                     });
-                    
+
                     // Agregar event listeners a los botones
                     document.querySelectorAll(".add-to-cart").forEach(button => {
                         button.addEventListener("click", agregarAlCarrito);
                     });
                 });
         }
-        
+
         // Función para agregar al carrito (modificada)
         function agregarAlCarrito(e) {
             const button = e.target;
             const productoId = button.getAttribute("data-id");
             const productoNombre = button.getAttribute("data-nombre");
             const productoPrecio = parseFloat(button.getAttribute("data-precio"));
-            
+
             // Buscar si el producto ya está en el carrito
             let productoExistente = carrito.find(p => p.id === productoId);
-            
+
             if (productoExistente) {
                 productoExistente.cantidad++;
             } else {
@@ -725,13 +767,13 @@
                     cantidad: 1
                 });
             }
-            
+
             // Guardar en localStorage
             localStorage.setItem("carrito", JSON.stringify(carrito));
-            
+
             // Mostrar mensaje
             mostrarMensajeExito();
-            
+
             // Actualizar carrito y contador
             actualizarCarrito();
         }
@@ -779,9 +821,9 @@
         function actualizarCarrito() {
             const cartItems = document.getElementById("cart-items");
             const cartTotal = document.querySelector(".total-pagar");
-            
+
             cartItems.innerHTML = "";
-            
+
             if (carrito.length === 0) {
                 cartItems.innerHTML = `
                     <p style="text-align: center; color: #666; font-size: 14px;">
@@ -790,7 +832,7 @@
                 `;
             } else {
                 let total = 0;
-                
+
                 carrito.forEach(producto => {
                     const item = document.createElement("div");
                     item.className = "cart-product";
@@ -803,40 +845,40 @@
                         <button onclick="eliminarDelCarrito('${producto.id}')">X</button>
                     `;
                     cartItems.appendChild(item);
-                    
+
                     total += producto.precio * producto.cantidad;
                 });
-                
+
                 cartTotal.textContent = `$${total.toFixed(2)}`;
             }
-            
+
             // Actualizar contador (solo aquí, no en múltiples lugares)
             actualizarContadorCarrito();
             actualizarTotalCarrito();
         }
 
         // Al cargar la página, inicializar el carrito
-        document.addEventListener("DOMContentLoaded", function() {
+        document.addEventListener("DOMContentLoaded", function () {
             // Cargar carrito desde localStorage
             carrito = JSON.parse(localStorage.getItem("carrito")) || [];
-            
+
             // Actualizar contador inicial
             actualizarContadorCarrito();
             actualizarCarrito();
-            
+
             // Resto de tu código de inicialización...
         });
 
 
-        
-        document.addEventListener("DOMContentLoaded", function() {
-        // Cargar carrito desde localStorage
-        carrito = JSON.parse(localStorage.getItem("carrito")) || [];
-        
-        // Actualizar contador inicial
-        actualizarContadorCarrito();
-        
-        // ... resto de tu código de inicialización ...
+
+        document.addEventListener("DOMContentLoaded", function () {
+            // Cargar carrito desde localStorage
+            carrito = JSON.parse(localStorage.getItem("carrito")) || [];
+
+            // Actualizar contador inicial
+            actualizarContadorCarrito();
+
+            // ... resto de tu código de inicialización ...
         });
 
         // Funciones para mostrar mensajes
@@ -847,7 +889,7 @@
                 mensaje.style.display = "none";
             }, 3000);
         }
-        
+
         function mostrarMensajeEliminado() {
             const mensaje = document.getElementById("mensaje-eliminado");
             mensaje.style.display = "block";
@@ -855,14 +897,14 @@
                 mensaje.style.display = "none";
             }, 3000);
         }
-        
+
         // Función para actualizar el contador del carrito
         function actualizarContadorCarrito() {
             const contador = document.getElementById("contador-productos");
             // Sumar todas las cantidades de productos en el carrito
             const totalProductos = carrito.reduce((total, producto) => total + producto.cantidad, 0);
             contador.textContent = totalProductos;
-            
+
             // Mostrar u ocultar el contador según si hay productos
             if (totalProductos > 0) {
                 contador.style.display = "flex";
@@ -891,49 +933,49 @@
                 },
                 body: JSON.stringify({ carrito: carritoParaEnviar })
             })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success && data.init_point) {
-                    // Redirigir al usuario a MercadoPago
-                    window.location.href = data.init_point;
-                } else {
-                    alert(`Error: ${data.error || 'Error desconocido'}`);
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('Error al procesar el pago');
-            });
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.init_point) {
+                        // Redirigir al usuario a MercadoPago
+                        window.location.href = data.init_point;
+                    } else {
+                        alert(`Error: ${data.error || 'Error desconocido'}`);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error al procesar el pago');
+                });
         }
 
 
         // Función para filtrar productos
         function filtrarProductos() {
-    const categoria = document.getElementById("categoria").value;
-    const marca = document.getElementById("marca").value;
+            const categoria = document.getElementById("categoria").value;
+            const marca = document.getElementById("marca").value;
 
-    fetch(`/filtrar_productos?categoria=${categoria}&marca=${marca}`)
-        .then(response => response.json())
-        .then(data => {
-            const container = document.getElementById("productos");
-            container.innerHTML = "";
-            
-            // Filtramos por productos activos (aunque el backend ya lo hace)
-            const activeProducts = data.productos ? data.productos.filter(p => p.activo === true) : [];
-            
-            if (activeProducts.length === 0) {
-                container.innerHTML = "<p>No se encontraron productos activos con esos filtros</p>";
-                return;
-            }
-            
-            activeProducts.forEach(producto => {
-                const productCard = document.createElement("div");
-                productCard.className = "producto-card";
-                productCard.dataset.categoria = producto.categoria;
-                productCard.dataset.marca = producto.marca;
-                productCard.dataset.activo = producto.activo;
+            fetch(`/filtrar_productos?categoria=${categoria}&marca=${marca}`)
+                .then(response => response.json())
+                .then(data => {
+                    const container = document.getElementById("productos");
+                    container.innerHTML = "";
 
-                productCard.innerHTML = `
+                    // Filtramos por productos activos (aunque el backend ya lo hace)
+                    const activeProducts = data.productos ? data.productos.filter(p => p.activo === true) : [];
+
+                    if (activeProducts.length === 0) {
+                        container.innerHTML = "<p>No se encontraron productos activos con esos filtros</p>";
+                        return;
+                    }
+
+                    activeProducts.forEach(producto => {
+                        const productCard = document.createElement("div");
+                        productCard.className = "producto-card";
+                        productCard.dataset.categoria = producto.categoria;
+                        productCard.dataset.marca = producto.marca;
+                        productCard.dataset.activo = producto.activo;
+
+                        productCard.innerHTML = `
                     <img src="${producto.imagen}" alt="${producto.nombre}" class="producto-imagen">
                     <h3>${producto.nombre}</h3>
                     <p>Marca: ${producto.marca}</p>
@@ -944,99 +986,99 @@
                     <div id="paypal-button-container-${producto.id}"></div>
                 `;
 
-                container.appendChild(productCard);
+                        container.appendChild(productCard);
 
-                // Renderizar botón de PayPal si es necesario
-                if (typeof paypal !== 'undefined') {
-                    paypal.Buttons({
-                        createOrder: function(data, actions) {
-                            return actions.order.create({
-                                purchase_units: [{
-                                    amount: {
-                                        value: producto.precio
-                                    }
-                                }]
-                            });
-                        },
-                        onApprove: function(data, actions) {
-                            return actions.order.capture().then(function(details) {
-                                alert('Pago completado por ' + details.payer.name.given_name);
-                            });
+                        // Renderizar botón de PayPal si es necesario
+                        if (typeof paypal !== 'undefined') {
+                            paypal.Buttons({
+                                createOrder: function (data, actions) {
+                                    return actions.order.create({
+                                        purchase_units: [{
+                                            amount: {
+                                                value: producto.precio
+                                            }
+                                        }]
+                                    });
+                                },
+                                onApprove: function (data, actions) {
+                                    return actions.order.capture().then(function (details) {
+                                        alert('Pago completado por ' + details.payer.name.given_name);
+                                    });
+                                }
+                            }).render(`#paypal-button-container-${producto.id}`);
                         }
-                    }).render(`#paypal-button-container-${producto.id}`);
-                }
-            });
+                    });
 
-            // Agregar event listeners a los nuevos botones
-            document.querySelectorAll(".add-to-cart").forEach(button => {
-                button.addEventListener("click", agregarAlCarrito);
-            });
-        })
-        .catch(error => {
-            console.error("Error al filtrar productos:", error);
-            const container = document.getElementById("productos");
-            container.innerHTML = "<p>Error al cargar los productos</p>";
-        });
-}
-        
-        // Rellenar marcas cuando se selecciona categoría
-        document.getElementById("categoria").addEventListener("change", function() {
-    const categoria = this.value; // Obtener la categoría seleccionada
-    const marcaSelect = document.getElementById("marca"); // Select de marcas
-
-    // Limpiar las opciones actuales del select de marcas
-    marcaSelect.innerHTML = '<option value="">Selecciona una marca</option>';
-
-    if (categoria) {
-        // Hacer una solicitud al servidor para obtener las marcas de la categoría seleccionada
-        fetch(`/get_marcas_por_categoria?categoria=${encodeURIComponent(categoria)}`)
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error("Error al obtener las marcas");
-                }
-                return response.json();
-            })
-            .then(data => {
-                // Agregar las marcas al select de marcas
-                data.marcas.forEach(marca => {
-                    const option = document.createElement("option");
-                    option.value = marca;
-                    option.textContent = marca;
-                    marcaSelect.appendChild(option);
+                    // Agregar event listeners a los nuevos botones
+                    document.querySelectorAll(".add-to-cart").forEach(button => {
+                        button.addEventListener("click", agregarAlCarrito);
+                    });
+                })
+                .catch(error => {
+                    console.error("Error al filtrar productos:", error);
+                    const container = document.getElementById("productos");
+                    container.innerHTML = "<p>Error al cargar los productos</p>";
                 });
-            })
-            .catch(error => {
-                console.error("Error al cargar las marcas:", error);
-                alert("Hubo un error al cargar las marcas. Inténtalo de nuevo.");
-            });
-    }
-});
-            
+        }
+
+        // Rellenar marcas cuando se selecciona categoría
+        document.getElementById("categoria").addEventListener("change", function () {
+            const categoria = this.value; // Obtener la categoría seleccionada
+            const marcaSelect = document.getElementById("marca"); // Select de marcas
+
+            // Limpiar las opciones actuales del select de marcas
+            marcaSelect.innerHTML = '<option value="">Selecciona una marca</option>';
+
+            if (categoria) {
+                // Hacer una solicitud al servidor para obtener las marcas de la categoría seleccionada
+                fetch(`/get_marcas_por_categoria?categoria=${encodeURIComponent(categoria)}`)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error("Error al obtener las marcas");
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        // Agregar las marcas al select de marcas
+                        data.marcas.forEach(marca => {
+                            const option = document.createElement("option");
+                            option.value = marca;
+                            option.textContent = marca;
+                            marcaSelect.appendChild(option);
+                        });
+                    })
+                    .catch(error => {
+                        console.error("Error al cargar las marcas:", error);
+                        alert("Hubo un error al cargar las marcas. Inténtalo de nuevo.");
+                    });
+            }
+        });
+
         // Botón de pagar
-        document.getElementById("btn-pagar").addEventListener("click", function() {
+        document.getElementById("btn-pagar").addEventListener("click", function () {
             if (carrito.length === 0) {
-            alert("El carrito está vacío");
+                alert("El carrito está vacío");
             } else {
-            // Guardar el carrito en la sesión del servidor
+                // Guardar el carrito en la sesión del servidor
                 fetch('/actualizar_carrito', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({carrito: carrito})
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    window.location.href = this.dataset.url;
-                } else {
-                    alert("Error al guardar el carrito");
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert("Error al conectar con el servidor");
-            });
+                    },
+                    body: JSON.stringify({ carrito: carrito })
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            window.location.href = this.dataset.url;
+                        } else {
+                            alert("Error al guardar el carrito");
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert("Error al conectar con el servidor");
+                    });
             }
         });
 
@@ -1058,23 +1100,24 @@
             }
         };
 
-        
+
 
         inactivityTime();
     </script>
-    
+
     <!-- Al final de categorias.html, antes de </body> -->
     <script>
         // Verificar al cargar la página si hay un usuario pero no carrito
-        document.addEventListener("DOMContentLoaded", function() {
+        document.addEventListener("DOMContentLoaded", function () {
             // Si hay sesión (usuario_id en sessionStorage) pero no carrito en localStorage, inicializarlo vacío
             if (sessionStorage.getItem('usuario_id') && !localStorage.getItem('carrito')) {
                 localStorage.setItem('carrito', JSON.stringify([]));
             }
-            
+
         });
     </script>
 
 
 </body>
+
 </html>
